@@ -83,23 +83,49 @@ def admit_patient(request: AdmitPatientRequest):
     """API để Bác sĩ Nhập viện và tạo hồ sơ mới"""
     db = SessionLocal()
     try:
-        # 1. Tạo bệnh nhân mới tinh lưu vào PostgreSQL
-        new_patient = Patient(
-            full_name=request.name,
-            device_id=request.device_id,
-            target_rate=request.target,
-            bed_number=request.bed,
-            is_active=True
-        )
-        db.add(new_patient)
-        db.commit()
+        # 1. TỊCH THU THIẾT BỊ TỪ GIƯỜNG CŨ (Bọc thép chống lỗi Unique_device_id)
+        old_assignment = db.query(Patient).filter(
+            Patient.device_id == request.device_id,
+            Patient.bed_number != request.bed
+        ).first()
         
-        # 2. Bắn lệnh MQTT xuống đánh thức cái máy phần cứng
+        if old_assignment:
+            old_assignment.device_id = None
+            old_assignment.target_rate = 0.0
+            old_assignment.is_active = False
+
+        # 2. KIỂM TRA XEM GIƯỜNG NÀY ĐÃ CÓ AI TRONG DATABASE CHƯA?
+        existing_patient = db.query(Patient).filter(Patient.bed_number == request.bed).first()
+        
+        if existing_patient:
+            # Nếu giường đã có hồ sơ -> Ghi đè thông tin người mới lên
+            existing_patient.full_name = request.name
+            existing_patient.device_id = request.device_id
+            existing_patient.target_rate = request.target
+            existing_patient.is_active = True
+        else:
+            # Nếu giường mới tinh -> Tạo hồ sơ mới
+            new_patient = Patient(
+                full_name=request.name,
+                device_id=request.device_id,
+                target_rate=request.target,
+                bed_number=request.bed,
+                is_active=True
+            )
+            db.add(new_patient)
+            
+        db.commit() # Chốt lưu vào Database
+        
+        # 3. Bắn lệnh MQTT xuống đánh thức cái máy phần cứng
         send_mqtt_command(request.device_id, request.target)
         
         return {"status": "success", "message": "Đã tạo hồ sơ và bắt đầu truyền!"}
+    
     except Exception as e:
-        db.rollback()
+        db.rollback() # Có lỗi thì hủy bỏ, không lưu DB nữa
+        print("\n🚨 CẢNH BÁO: ÁN MẠNG TẠI BACKEND!")
+        import traceback
+        traceback.print_exc() 
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         db.close()
