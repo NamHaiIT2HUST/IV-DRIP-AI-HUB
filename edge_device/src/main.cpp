@@ -47,6 +47,8 @@ void setup() {
 void loop() {
   //đọc ADC từ biến trở
   int rawADC = analogRead(POT_PIN);
+  float alpha = 0.1; // Trọng số (0.0 đến 1.0). Càng nhỏ càng mượt nhưng phản ứng chậm.
+  filteredADC = (alpha * rawADC) + ((1.0 - alpha) * filteredADC);
   
   currentRate = map(rawADC, 0, 4095, 0, 100);
 
