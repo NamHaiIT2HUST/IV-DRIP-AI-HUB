@@ -226,3 +226,51 @@ body {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
+
+/* --- CONTROL PANEL --- */
+.control-panel {
+  display: flex;
+  gap: 10px;
+  margin: 0 10px 25px 10px;
+}
+
+.target-input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  color: #fff;
+  padding: 12px 15px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.target-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 10px rgba(0, 200, 83, 0.2);
+}
+
+.btn-update {
+  background: var(--primary-color);
+  color: #000;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  padding: 0 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-update:hover:not(:disabled) {
+  background: #00e676;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 200, 83, 0.3);
+}
+
+.btn-update:disabled {
+  background: #323645;
+  color: #9094a6;
+  cursor: not-allowed;
+}
