@@ -1,0 +1,220 @@
+/* --- CẤU HÌNH MÀU SẮC SOFT DARK THEME --- */
+:root {
+  --bg-color: #0f111a; 
+  --card-bg: #1a1d29;  
+  --primary-soft: #00c853; 
+  --danger-soft: #ff5252; 
+  --text-main: #e0e0e0; 
+  --text-sub: #9094a6; 
+  --border-color: #2d3142; 
+  --accent-blue: #4776ff; 
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  margin: 0;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Đã mở rộng tối đa ra toàn màn hình */
+.medical-app {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 20px 40px;
+}
+
+/* --- HEADER --- */
+.main-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 30px; padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand h1 { font-size: 1.4rem; letter-spacing: 1px; margin: 0; font-weight: 700; color: #fff; }
+.brand .light { font-weight: 300; color: var(--text-sub); }
+
+.status-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 18px; border-radius: 30px; font-size: 0.8rem; font-weight: 600;
+  background: rgba(255, 255, 255, 0.05); color: var(--text-sub); border: 1px solid var(--border-color);
+}
+.status-pill.online { color: var(--primary-soft); border-color: rgba(0, 200, 83, 0.3); }
+.pulse-dot { width: 8px; height: 8px; border-radius: 50%; background-color: currentColor; animation: pulse-ring 1.5s infinite; }
+@keyframes pulse-ring { 0% { transform: scale(0.9); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(0.9); opacity: 1; } }
+
+/* --- GRID HỆ THỐNG GIƯỜNG MỚI --- */
+.beds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+}
+
+/* --- TRẠNG THÁI GIƯỜNG TRỐNG --- */
+.bed-card-empty {
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px dashed var(--border-color);
+  border-radius: 32px;
+  min-height: 450px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.3s ease; color: var(--text-sub);
+}
+.bed-card-empty:hover {
+  background: rgba(0, 200, 83, 0.05);
+  border-color: var(--primary-soft);
+  color: var(--primary-soft);
+  transform: translateY(-5px);
+}
+.empty-icon { font-size: 4rem; font-weight: 200; margin-bottom: 10px; }
+.bed-card-empty h3 { margin: 0 0 5px 0; font-size: 1.2rem; }
+
+/* --- PATIENT CARD (ĐÃ THU GỌN CHO GRID) --- */
+.patient-card {
+  background: var(--card-bg); border-radius: 32px; padding: 25px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.2); border: 1px solid var(--border-color);
+  position: relative; overflow: hidden; transition: all 0.3s;
+}
+.patient-card.alert { border-color: rgba(255, 82, 82, 0.5); box-shadow: 0 20px 40px rgba(255, 82, 82, 0.15); }
+
+.card-header { display: flex; justify-content: space-between; margin-bottom: 25px; }
+.label { font-size: 0.65rem; color: var(--text-sub); font-weight: 700; letter-spacing: 1.5px; margin-bottom: 6px; display: block; }
+.bed-info .value { font-weight: 800; color: var(--accent-blue); line-height: 1; display: block;}
+.device-info { text-align: right; }
+.device-info .value { font-size: 0.9rem; color: #fff; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 10px;}
+
+.btn-discharge {
+  background: transparent; color: var(--danger-soft); border: 1px solid var(--danger-soft);
+  padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; cursor: pointer;
+}
+.btn-discharge:hover { background: var(--danger-soft); color: white; }
+
+.main-display { text-align: center; }
+.current-rate { font-weight: 800; margin: 0; line-height: 1; text-shadow: 0 5px 20px rgba(0, 200, 83, 0.15); letter-spacing: -2px; }
+.unit { color: var(--text-sub); font-size: 0.8rem; margin-top: 8px; display: block; font-weight: 500;}
+
+/* Progress bar (Thu nhỏ lại một chút) */
+.progress-container { margin: 20px 10px 0; position: relative; }
+.progress-bg { height: 8px; background: #2d313e; border-radius: 10px; }
+.progress-bar { height: 100%; border-radius: 10px; transition: width 0.3s; }
+.target-marker { position: absolute; top: -6px; height: 20px; border-left: 2px solid #ffb300; z-index: 2; }
+.marker-label { position: absolute; top: 22px; left: -45px; width: 90px; font-size: 0.7rem; color: #ffb300; font-weight: 700; text-align: center;}
+
+/* --- BẢNG ĐIỀU KHIỂN AI --- */
+.ai-panel { padding: 12px 15px; border-radius: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-color); font-family: 'JetBrains Mono', monospace; }
+.ai-header { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.ai-title { font-size: 0.7rem; font-weight: 800; color: var(--text-sub); }
+.ai-analyzing { border-color: #4776ff; } .ai-analyzing .ai-message { color: #4776ff; }
+.ai-normal { border-color: rgba(0, 200, 83, 0.4); } .ai-normal .ai-message { color: var(--primary-soft); }
+.ai-warning { border-color: rgba(255, 179, 0, 0.6); } .ai-warning .ai-message { color: #ffb300; }
+.ai-danger { border-color: rgba(255, 82, 82, 0.8); animation: border-flash 1s infinite; } .ai-danger .ai-message { color: var(--danger-soft); }
+@keyframes border-flash { 0% { box-shadow: 0 0 5px rgba(255,82,82,0.2); } 50% { box-shadow: 0 0 20px rgba(255,82,82,0.6); } 100% { box-shadow: 0 0 5px rgba(255,82,82,0.2); } }
+
+/* --- FORM MODAL NHẬP VIỆN --- */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.modal-content {
+  background: var(--card-bg); width: 100%; max-width: 450px;
+  padding: 35px; border-radius: 24px; border: 1px solid var(--border-color);
+  box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+}
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; font-size: 0.8rem; color: var(--text-sub); font-weight: 600; margin-bottom: 8px; }
+.form-group input {
+  width: 100%; box-sizing: border-box; padding: 12px 15px;
+  background: #0f111a; border: 1px solid var(--border-color); color: #fff;
+  border-radius: 8px; font-size: 1rem; transition: 0.3s;
+}
+.form-group input:focus { border-color: var(--primary-soft); outline: none; }
+.btn-group { display: flex; gap: 15px; }
+.btn-primary { flex: 2; background: var(--primary-soft); color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+.btn-primary:hover { background: #00e676; transform: translateY(-2px); }
+.btn-secondary { flex: 1; background: transparent; color: var(--text-sub); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+.btn-secondary:hover { background: #323645; color: #fff; }
+
+/* --- BREADCRUMB NAVIGATION --- */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card-bg);
+  padding: 15px 25px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  border: 1px solid var(--border-color);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.crumb {
+  color: var(--text-sub);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.crumb:hover {
+  color: var(--primary-soft);
+  text-decoration: underline;
+}
+
+.crumb.active {
+  color: #fff;
+  cursor: default;
+  text-decoration: none;
+}
+
+.separator {
+  color: var(--border-color);
+  font-weight: bold;
+}
+
+/* --- NAVIGATION CARDS (Tòa, Tầng, Phòng) --- */
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+}
+
+.nav-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.nav-card:hover {
+  background: rgba(71, 118, 255, 0.1);
+  border-color: var(--accent-blue);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.nav-icon {
+  font-size: 3.8rem; 
+  margin-bottom: 25px; 
+  display: inline-block; 
+  line-height: 1; 
+  filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+}
+
+.nav-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.3rem;
+  color: #fff;
+  font-weight: bold;
+  letter-spacing: 0.5px; 
+}
+
+.nav-card p {
+  margin: 0;
+  color: var(--text-sub);
+  font-size: 0.9rem;
+}
