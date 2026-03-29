@@ -15,10 +15,10 @@ target_rate = 45.0
 current_rate = 45.0
 valve_angle = 90.0
 
-def on_connect(client, userdata, flags, rc):
-    print(f"[*] Đã kết nối tới MQTT Broker {BROKER} với mã: {rc}")
+def on_connect(client, userdata, flags, reason_code, properties):
+    print(f"[*] Đã kết nối tới MQTT Broker {BROKER} với mã: {reason_code}")
 
-client = mqtt.Client()
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 client.on_connect = on_connect
 client.connect(BROKER, PORT, 60)
 
