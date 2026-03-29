@@ -3,6 +3,9 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <WiFi.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -10,75 +13,137 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 Servo valveServo;
-const int SERVO_PIN = 18;     //Chân xuất xung PWM cho Servo
-const int POT_PIN = 34;       //Chân ADC đọc Biến trở (Giả lập cảm biến giọt)
+const int SERVO_PIN = 18;     // Chân PWM cho Servo
+const int POT_PIN = 4;       // Chân ADC đọc biến trở (Giả lập cảm biến giọt)
 
-float targetRate = 45.0;      //Phác đồ yêu cầu: 45 giọt/phút
-float currentRate = 0.0;      //tốc độ thực tế đo được
-float valveAngle = 90.0;      //Góc mở van hiện tại (0 - 180 độ)
+const char* ssid = "Tang3";        
+const char* password = "23092005";
+const char* mqtt_server = "192.168.1.103";     
+const char* device_id = "ESP_01";          
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+float targetRate = 45.0;      
+float currentRate = 0.0;     
+float valveAngle = 90.0;      
+float filteredADC = 0.0;   
+long lastTelemetryTime = 0;
+
+void mqtt_callback(char* topic, byte* payload, unsigned int length) {
+    StaticJsonDocument<128> doc;
+    DeserializationError error = deserializeJson(doc, payload, length);
+    
+    if (error) {
+        Serial.print(F("Lỗi parse JSON lệnh: "));
+        Serial.println(error.f_str());
+        return;
+    }
+
+    if (doc.containsKey("target_rate")) {
+        targetRate = doc["target_rate"];
+        Serial.printf("🔔 Nhận lệnh phác đồ mới: %.1f bpm\n", targetRate);
+    }
+}
+
+void setup_wifi() {
+    delay(10);
+    Serial.println("\n--- KẾT NỐI WIFI ---");
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+    }
+    Serial.println("\nWiFi OK! IP: " + WiFi.localIP().toString());
+}
+
+void reconnect() {
+    while (!client.connected()) {
+        Serial.print("Đang kết nối MQTT Broker...");
+        if (client.connect(device_id)) {
+            Serial.println(" Thành công!");
+            // Đăng ký lắng nghe kênh lệnh riêng của thiết bị này
+            char command_topic[50];
+            sprintf(command_topic, "hospital/command/%s", device_id);
+            client.subscribe(command_topic);
+        } else {
+            Serial.print(" Thất bại, rc=");
+            Serial.print(client.state());
+            Serial.println(" Thử lại sau 3 giây...");
+            delay(3000);
+        }
+    }
+}
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println("Khoi dong AI IV Drip Hub...");
+    Serial.begin(115200);
 
-  //Khởi tạo Servo
-  ESP32PWM::allocateTimer(0);
-  ESP32PWM::allocateTimer(1);
-  ESP32PWM::allocateTimer(2);
-  ESP32PWM::allocateTimer(3);
-  valveServo.setPeriodHertz(50); //Servo chuẩn chạy ở 50Hz
-  valveServo.attach(SERVO_PIN, 500, 2400); 
-  valveServo.write(valveAngle);
+    ESP32PWM::allocateTimer(0);
+    valveServo.setPeriodHertz(50);
+    valveServo.attach(SERVO_PIN, 500, 2400);
+    valveServo.write(valveAngle);
 
-  //Khởi tạo OLED
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    Serial.println(F("Loi: Khong tim thay man hinh OLED"));
-    for(;;); // Treo máy nếu không có màn hình
-  }
-  display.clearDisplay();
-  display.setTextColor(WHITE);
-  display.setTextSize(1);
-  display.setCursor(0, 10);
-  display.println("System Booting...");
-  display.display();
-  delay(1000);
+    if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+        Serial.println(F("Lỗi: Không tìm thấy OLED"));
+        for(;;);
+    }
+    display.clearDisplay();
+    display.setTextColor(WHITE);
+    display.display();
+
+    setup_wifi();
+    client.setServer(mqtt_server, 1883);
+    client.setCallback(mqtt_callback);
 }
 
 void loop() {
-  //đọc ADC từ biến trở
-  int rawADC = analogRead(POT_PIN);
-  float alpha = 0.1; // Trọng số (0.0 đến 1.0). Càng nhỏ càng mượt nhưng phản ứng chậm.
-  filteredADC = (alpha * rawADC) + ((1.0 - alpha) * filteredADC);
-  
-  currentRate = map(rawADC, 0, 4095, 0, 100);
+    if (!client.connected()) reconnect();
+    client.loop();
 
-  //Tính sai số Delta
-  float error = targetRate - currentRate;
+    int rawADC = analogRead(POT_PIN);
+    float alpha = 0.1; 
+    filteredADC = (alpha * rawADC) + ((1.0 - alpha) * filteredADC);
 
-  //Thuật toán điều khiển bù trừ (Bản lề của phương pháp Newton/PID)
-  //Hệ số K_factor quyết định tốc độ "vọt lố" của van
-  float k_factor = 0.15; 
-  valveAngle = valveAngle + (error * k_factor);
+    currentRate = map(filteredADC, 0, 4095, 0, 100);
 
-  //Servo chỉ quay từ 0 đến 180 độ
-  if (valveAngle > 180.0) valveAngle = 180.0;
-  if (valveAngle < 0.0) valveAngle = 0.0;
+    float error = targetRate - currentRate;
+    float k_factor = 0.15;
 
-  valveServo.write(valveAngle);
+    valveAngle = valveAngle + (error * k_factor);
+    if (valveAngle > 180.0) valveAngle = 180.0;
+    if (valveAngle < 0.0) valveAngle = 0.0;
 
-  display.clearDisplay();
-  display.setCursor(0, 0);
-  display.println("--- IV DRIP HUB ---");
-  
-  display.setCursor(0, 20);
-  display.printf("Target : %.1f bpm\n", targetRate);
-  display.printf("Current: %.1f bpm\n", currentRate);
-  display.printf("Valve  : %.1f deg\n", valveAngle);
-  
-  display.display();
+    valveServo.write(valveAngle);
 
-  Serial.printf("{\"target\":%.1f, \"current\":%.1f, \"angle\":%.1f}\n", 
-                targetRate, currentRate, valveAngle);
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setCursor(0, 0);
+    display.println("--- AI IV DRIP HUB ---");
+    display.setCursor(0, 20);
+    display.printf("Target : %.1f bpm\n", targetRate);
+    display.printf("Actual : %.1f bpm\n", currentRate);
+    display.printf("Valve  : %.1f deg\n", valveAngle);
+    display.display();
 
-  delay(200); //Tốc độ lấy mẫu 5Hz
+    long now = millis();
+    if (now - lastTelemetryTime > 1000) {
+        lastTelemetryTime = now;
+        
+        StaticJsonDocument<256> doc;
+        doc["device"] = device_id;
+        doc["current"] = round(currentRate * 10) / 10.0;
+        doc["target"] = round(targetRate * 10) / 10.0;
+        doc["angle"] = round(valveAngle * 10) / 10.0;
+
+        char buffer[256];
+        serializeJson(doc, buffer);
+        
+        char telemetry_topic[50];
+        sprintf(telemetry_topic, "hospital/telemetry/%s", device_id);
+        client.publish(telemetry_topic, buffer);
+        
+        Serial.printf(">>> Uplink: %s\n", buffer);
+    }
+
+    delay(20); 
 }
