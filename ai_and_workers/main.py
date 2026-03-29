@@ -4,8 +4,8 @@ from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 # --- CẤU HÌNH INFLUXDB (Khớp 100% với docker-compose của Nam Hải) ---
-INFLUX_URL = "http://localhost:8086"
-INFLUX_TOKEN = "my-super-secret-auth-token-123"
+INFLUX_URL = "http://localhost:8087"
+INFLUX_TOKEN = "aEyoAt8SbmDUhu_x6G2TEpsW2ecxDJJzrHBNBJXsfD8Blnx1hVlMibpjU02MFKD1bSg_KQLt3JK9AI3vSOXlAw=="
 INFLUX_ORG = "soict"
 INFLUX_BUCKET = "telemetry_bucket"
 
