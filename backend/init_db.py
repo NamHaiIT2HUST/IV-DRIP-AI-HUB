@@ -1,35 +1,27 @@
-from app.db.postgres import engine, Base, SessionLocal
-from app.models.patient import Patient 
+from app.db.postgres import engine, Base
+from app.models.patient import Patient
+from sqlalchemy import text
 
-print("🚀 Bắt đầu quá trình khởi tạo Cơ sở dữ liệu...")
-print(f"🔍 Đang dùng URL: {engine.url}")
-
-Base.metadata.create_all(bind=engine)
-print("✅ Đã tạo xong cấu trúc các bảng (Tables).")
-
-db = SessionLocal()
+print("🚀 --- CHƯƠNG TRÌNH KHỞI TẠO DATABASE --- 🚀")
+print(f"🔍 Kết nối tới: {engine.url}")
 
 try:
-    existing_patient = db.query(Patient).filter(Patient.bed_number == "01").first()
-    
-    if not existing_patient:
-        print("💉 Đang tiến hành cấy (Seed) dữ liệu bệnh nhân đầu tiên...")
-        dummy_patient = Patient(
-            full_name="Nguyễn Văn A",
-            bed_number="01",
-            device_id="ESP_01",    
-            target_rate=45.0,         #
-            is_active=True
-        )
-        db.add(dummy_patient)
-        db.commit() 
-        print("✅ Đã nhập viện thành công: Bệnh nhân Nguyễn Văn A - Giường 01 - Thiết bị ESP_01")
-    else:
-        print("ℹ️ Dữ liệu Giường 01 đã tồn tại, bỏ qua bước cấy dữ liệu.")
-        
+    # BƯỚC 1: Dùng lệnh SQL thuần để cưỡng chế xóa bảng cũ (Phá khóa PostgreSQL)
+    with engine.connect() as conn:
+        print("🧨 Đang đặt mìn phá dỡ bảng cũ...")
+        conn.execute(text("DROP TABLE IF EXISTS patients CASCADE;"))
+        conn.commit()
+        print("💥 Đã xóa sạch bảng patients cũ!")
+
+    # BƯỚC 2: Xây dựng lại cấu trúc bảng mới từ Model Patient
+    print("🏗️ Đang xây dựng lại cấu trúc bảng mới...")
+    Base.metadata.create_all(bind=engine)
+    print("✅ Đã tạo xong bảng patients mới với đầy đủ các cột: created_at, end_time.")
+
+    print("\n💡 GỢI Ý: Database đã sạch sẽ. Bây giờ bạn hãy ra giao diện Web,")
+    print("   bấm nút 'LÀM SẠCH DỮ LIỆU' để đồng bộ bộ nhớ trình duyệt nhé!")
+
 except Exception as e:
-    print(f"❌ Có lỗi xảy ra: {e}")
-    db.rollback()
-finally:
-    db.close()
-    print("🏁 Hoàn tất Nghi thức Khai trương!")
+    print(f"❌ THẤT BẠI: Không thể khởi tạo Database. Lỗi: {e}")
+
+print("\n🏁 --- NGHI THỨC HOÀN TẤT --- 🏁")

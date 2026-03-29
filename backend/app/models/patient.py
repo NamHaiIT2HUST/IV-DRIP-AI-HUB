@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime
+from sqlalchemy.sql import func
 from app.db.postgres import Base
 
 class Patient(Base):

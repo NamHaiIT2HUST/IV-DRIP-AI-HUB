@@ -12,12 +12,14 @@ current_rates = {dev: 0.0 for dev in DEVICES}
 def on_message(client, userdata, msg):
     try:
         payload = json.loads(msg.payload.decode('utf-8'))
+        # Tách lấy phần cuối cùng của topic (Ví dụ: commands/ESP_02 -> lấy ESP_02)
+        dev_id = msg.topic.split("/")[-1] 
+        
         if "target_rate" in payload:
-            # Tách lấy tên thiết bị từ topic (VD: hospital/command/ESP_02)
-            dev_id = msg.topic.split("/")[-1]
             target_rates[dev_id] = payload["target_rate"]
             print(f"🔔 [{dev_id}] Nhận lệnh phác đồ mới: {payload['target_rate']} bpm")
-    except Exception as e: pass
+    except Exception as e: 
+        print(f"❌ Lỗi xử lý lệnh: {e}")
 
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 client.on_message = on_message
@@ -25,7 +27,7 @@ client.connect("127.0.0.1", 1883, 60)
 
 # Theo dõi tất cả các kênh lệnh
 for dev in DEVICES:
-    client.subscribe(f"hospital/command/{dev}")
+    client.subscribe(f"commands/{dev}")
 client.loop_start()
 
 print("🚀 [HỆ THỐNG GIẢ LẬP TỔNG] Đã bật 4 máy truyền dịch (ESP_01 -> ESP_04).")

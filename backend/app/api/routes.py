@@ -17,7 +17,7 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
-            # Lấy data mới nhất từ biến toàn cục bên mqtt_service
+            from app.services.mqtt_service import latest_telemetry
             await websocket.send_json(latest_telemetry)
             await asyncio.sleep(0.5)
     except:
@@ -58,68 +58,64 @@ class AdmitPatientRequest(BaseModel):
 
 @router.post("/api/device/{device_id}/target")
 def update_target_rate(device_id: str, request: UpdateTargetRequest):
-    """API để Bác sĩ cập nhật phác đồ điều trị HOẶC Kết thúc truyền"""
     db = SessionLocal()
     try:
-        # 1. Tìm bệnh nhân đang dùng máy này trong PostgreSQL
+        # Tìm bệnh nhân đang điều trị bằng thiết bị này
         patient = db.query(Patient).filter(Patient.device_id == device_id, Patient.is_active == True).first()
         
-        if not patient:
-            raise HTTPException(status_code=404, detail="Không tìm thấy bệnh nhân đang dùng thiết bị này!")
+        if patient:
+            if request.new_target == 0.0:
+                # 🛠️ LOGIC KẾT THÚC: Quan trọng nhất để hiện trong Lịch sử
+                patient.is_active = False
+                patient.end_time = datetime.now() # Lưu giờ kết thúc thực tế
+                # Giải phóng máy và giường để người khác dùng
+                patient.device_id = None 
+                patient.bed_number = f"ARCHIVED_{patient.id}" 
+            else:
+                # Cập nhật tốc độ mới
+                patient.target_rate = request.new_target
             
-        # 2. Xử lý Logic: Đổi phác đồ hoặc Kết thúc
-        if request.new_target == 0.0:
-            # 🐛 NẾU LÀ LỆNH KẾT THÚC TRUYỀN DỊCH (Tốc độ = 0)
-            patient.is_active = False
-            patient.device_id = None # Trả lại máy cho viện
-            # Trả lại giường, biến thành hồ sơ lưu trữ (VD: ARCHIVED_1)
-            patient.bed_number = f"ARCHIVED_{patient.id}" 
-            patient.end_time = datetime.now() # Chốt giờ kết thúc
-        else:
-            # Nếu chỉ là đổi tốc độ thì cập nhật bình thường
-            patient.target_rate = request.new_target
-            
-        db.commit()
+            db.commit() # 🚀 PHẢI COMMIT Ở ĐÂY để lưu vào PostgreSQL
+            db.refresh(patient)
         
-        # 3. Bắn lệnh MQTT xuống thẳng thiết bị vật lý (ESP32)
+        # Gửi lệnh xuống máy qua MQTT
         send_mqtt_command(device_id, request.new_target)
-        
-        return {"status": "success", "message": f"Đã cập nhật phác đồ thành {request.new_target} bpm"}
+        return {"status": "success"}
     finally:
         db.close()
 
 @router.post("/api/patients/admit")
 def admit_patient(request: AdmitPatientRequest):
-    """API để Bác sĩ Nhập viện và tạo hồ sơ mới"""
+    """API để Nhập viện - Đã fix lỗi tranh chấp thiết bị"""
     db = SessionLocal()
     try:
-        # 1. TỊCH THU THIẾT BỊ TỪ GIƯỜNG CŨ (Bọc thép chống lỗi Unique_device_id)
-        old_assignment = db.query(Patient).filter(
+        # 1. KIỂM TRA XEM THIẾT BỊ NÀY CÓ ĐANG BỊ AI CHIẾM GIỮ KHÔNG?
+        # Nếu có, ta phải "tước quyền" sử dụng của người cũ
+        old_device_owner = db.query(Patient).filter(
             Patient.device_id == request.device_id,
-            Patient.bed_number != request.bed
+            Patient.is_active == True
         ).first()
         
-        if old_assignment:
-            old_assignment.device_id = None
-            old_assignment.target_rate = 0.0
-            old_assignment.is_active = False
-            # 🐛 Nếu bị "cướp" máy, coi như ca truyền đó kết thúc luôn
-            old_assignment.end_time = datetime.now()
-            old_assignment.bed_number = f"ARCHIVED_AUTO_{old_assignment.id}"
+        if old_device_owner:
+            old_device_owner.device_id = None
+            old_device_owner.is_active = False
+            old_device_owner.end_time = datetime.now()
+            # Đổi số giường để tránh trùng lặp sau này
+            old_device_owner.bed_number = f"ARCHIVED_AUTO_{old_device_owner.id}"
 
-        # 2. KIỂM TRA XEM GIƯỜNG NÀY ĐÃ CÓ AI TRONG DATABASE CHƯA?
+        # 2. KIỂM TRA XEM GIƯỜNG NÀY ĐÃ CÓ AI CHƯA
         existing_patient = db.query(Patient).filter(Patient.bed_number == request.bed).first()
         
         if existing_patient:
-            # Nếu giường đã có hồ sơ -> Ghi đè thông tin người mới lên
+            # Ghi đè người mới vào giường này
             existing_patient.full_name = request.name
             existing_patient.device_id = request.device_id
             existing_patient.target_rate = request.target
             existing_patient.is_active = True
-            existing_patient.created_at = datetime.now() # Reset giờ bắt đầu
-            existing_patient.end_time = None # Đảm bảo giờ kết thúc là null
+            existing_patient.created_at = datetime.now()
+            existing_patient.end_time = None
         else:
-            # Nếu giường mới tinh -> Tạo hồ sơ mới
+            # Tạo hồ sơ mới hoàn toàn
             new_patient = Patient(
                 full_name=request.name,
                 device_id=request.device_id,
@@ -129,30 +125,17 @@ def admit_patient(request: AdmitPatientRequest):
             )
             db.add(new_patient)
             
-        db.commit() # Chốt lưu vào Database
+        db.commit() # Lưu vào DB
         
-        # 3. Bắn lệnh MQTT xuống đánh thức cái máy phần cứng
+        # 3. Bắn lệnh MQTT
         send_mqtt_command(request.device_id, request.target)
         
-        return {"status": "success", "message": "Đã tạo hồ sơ và bắt đầu truyền!"}
+        return {"status": "success", "message": "Nhập viện thành công!"}
     
     except Exception as e:
-        db.rollback() # Có lỗi thì hủy bỏ, không lưu DB nữa
-        print("\n🚨 CẢNH BÁO: ÁN MẠNG TẠI BACKEND!")
+        db.rollback()
         import traceback
         traceback.print_exc() 
         raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        db.close()
-
-# 🐛 TÍNH NĂNG MỚI: API LẤY LỊCH SỬ BỆNH NHÂN
-@router.get("/api/patients/history")
-def get_patients_history():
-    """Lấy danh sách các ca truyền đã kết thúc để hiển thị ở Tab Lịch Sử"""
-    db = SessionLocal()
-    try:
-        # Lấy những hồ sơ đã tắt (is_active = False) và sắp xếp mới nhất lên đầu
-        history = db.query(Patient).filter(Patient.is_active == False).order_by(Patient.end_time.desc()).limit(50).all()
-        return history
     finally:
         db.close()
