@@ -1,9 +1,24 @@
-version: '3.8'
 services:
+  # Trạm giao vận MQTT
   mosquitto:
     image: eclipse-mosquitto:2.0
     ports:
       - "1883:1883"
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
-    restart: always 
+    restart: always
+
+  # Cơ sở dữ liệu Time-series (InfluxDB)
+  influxdb:
+    image: influxdb:2.7
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: secretpassword123
+      DOCKER_INFLUXDB_INIT_ORG: soict
+      DOCKER_INFLUXDB_INIT_BUCKET: telemetry_bucket
+      # Ma thuật ở đây: Set sẵn Token luôn!
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: my-super-secret-auth-token-123
+    restart: always
