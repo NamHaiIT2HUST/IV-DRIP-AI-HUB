@@ -9,7 +9,7 @@ export default function HistoryTab() {
   const fetchHistory = async () => {
     setLoading(true);
     try {
-      // Thêm timestamp để tránh trình duyệt lấy dữ liệu cũ trong cache
+      // Thêm timestamp ?t=... để tránh trình duyệt lấy dữ liệu cũ trong cache
       const response = await axios.get(`http://localhost:8000/api/patients/history?t=${Date.now()}`);
       setHistory(response.data);
     } catch (error) {

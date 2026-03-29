@@ -58,27 +58,25 @@ class AdmitPatientRequest(BaseModel):
 
 @router.post("/api/device/{device_id}/target")
 def update_target_rate(device_id: str, request: UpdateTargetRequest):
+    """API để Bác sĩ cập nhật phác đồ HOẶC kết thúc truyền"""
     db = SessionLocal()
     try:
-        # Tìm bệnh nhân đang điều trị bằng thiết bị này
+        # Tìm bệnh nhân đang truyền bằng máy này
         patient = db.query(Patient).filter(Patient.device_id == device_id, Patient.is_active == True).first()
         
         if patient:
             if request.new_target == 0.0:
-                # 🛠️ LOGIC KẾT THÚC: Quan trọng nhất để hiện trong Lịch sử
+                # 🛠️ CHỐT SỔ LỊCH SỬ
                 patient.is_active = False
-                patient.end_time = datetime.now() # Lưu giờ kết thúc thực tế
-                # Giải phóng máy và giường để người khác dùng
-                patient.device_id = None 
-                patient.bed_number = f"ARCHIVED_{patient.id}" 
+                patient.end_time = datetime.now() # Ghi giờ kết thúc thực tế
+                patient.device_id = None # Trả máy
+                patient.bed_number = f"ARCHIVED_{patient.id}" # Trả giường
+                print(f"✅ Đã chốt sổ ca truyền của {patient.full_name}")
             else:
-                # Cập nhật tốc độ mới
                 patient.target_rate = request.new_target
             
-            db.commit() # 🚀 PHẢI COMMIT Ở ĐÂY để lưu vào PostgreSQL
-            db.refresh(patient)
+            db.commit() # 🚀 PHẢI CÓ DÒNG NÀY DỮ LIỆU MỚI VÀO POSTGRES
         
-        # Gửi lệnh xuống máy qua MQTT
         send_mqtt_command(device_id, request.new_target)
         return {"status": "success"}
     finally:
@@ -137,5 +135,24 @@ def admit_patient(request: AdmitPatientRequest):
         import traceback
         traceback.print_exc() 
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
+
+# --- API LẤY LỊCH SỬ HỒ SƠ (PHẢI CÓ ĐOẠN NÀY THÌ TAB LỊCH SỬ MỚI CHẠY) ---
+@router.get("/api/patients/history")
+def get_patients_history():
+    db = SessionLocal()
+    try:
+        # Lấy tất cả bệnh nhân đã kết thúc (is_active = False)
+        # Sắp xếp theo thời gian kết thúc mới nhất lên đầu
+        history = db.query(Patient).filter(
+            Patient.is_active == False
+        ).order_by(Patient.end_time.desc()).all()
+        
+        print(f"📡 API History: Đã tìm thấy {len(history)} ca truyền đã kết thúc.")
+        return history
+    except Exception as e:
+        print(f"❌ Lỗi khi lấy lịch sử: {e}")
+        return []
     finally:
         db.close()
