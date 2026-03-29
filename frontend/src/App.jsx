@@ -190,6 +190,18 @@ function App() {
               <h3 style={{ marginTop: 0, color: '#fff', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid #2d3142', paddingBottom: '15px' }}>
                 <span className="pulse-dot" style={{ color: '#00c853' }}></span>
                 TỔNG TRỰC: BỆNH NHÂN ĐANG TRUYỀN DỊCH ({activePatients.length})
+
+                <button 
+                  onClick={() => {
+                    if(window.confirm("CẢNH BÁO: Xóa toàn bộ dữ liệu bệnh nhân trên trình duyệt?")) {
+                      localStorage.clear();
+                      window.location.reload();
+                    }
+                  }}
+                  style={{ marginLeft: 'auto', background: '#ff5252', color: '#fff', border: 'none', padding: '5px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}
+                >
+                  🗑️ LÀM SẠCH DỮ LIỆU
+                </button>
               </h3>
 
               {activePatients.length === 0 ? (

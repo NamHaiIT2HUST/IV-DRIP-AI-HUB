@@ -6,6 +6,7 @@ from app.db.postgres import SessionLocal
 from app.models.patient import Patient
 from app.core.config import settings
 from influxdb_client import InfluxDBClient
+from datetime import datetime  # 🐛 THÊM DÒNG NÀY ĐỂ XỬ LÝ THỜI GIAN
 
 router = APIRouter()
 query_api = InfluxDBClient(url=settings.INFLUX_URL, token=settings.INFLUX_TOKEN, org=settings.INFLUX_ORG).query_api()
@@ -57,8 +58,7 @@ class AdmitPatientRequest(BaseModel):
 
 @router.post("/api/device/{device_id}/target")
 def update_target_rate(device_id: str, request: UpdateTargetRequest):
-    """API để Bác sĩ cập nhật phác đồ điều trị"""
-    
+    """API để Bác sĩ cập nhật phác đồ điều trị HOẶC Kết thúc truyền"""
     db = SessionLocal()
     try:
         # 1. Tìm bệnh nhân đang dùng máy này trong PostgreSQL
@@ -67,8 +67,18 @@ def update_target_rate(device_id: str, request: UpdateTargetRequest):
         if not patient:
             raise HTTPException(status_code=404, detail="Không tìm thấy bệnh nhân đang dùng thiết bị này!")
             
-        # 2. Cập nhật phác đồ mới vào Database
-        patient.target_rate = request.new_target
+        # 2. Xử lý Logic: Đổi phác đồ hoặc Kết thúc
+        if request.new_target == 0.0:
+            # 🐛 NẾU LÀ LỆNH KẾT THÚC TRUYỀN DỊCH (Tốc độ = 0)
+            patient.is_active = False
+            patient.device_id = None # Trả lại máy cho viện
+            # Trả lại giường, biến thành hồ sơ lưu trữ (VD: ARCHIVED_1)
+            patient.bed_number = f"ARCHIVED_{patient.id}" 
+            patient.end_time = datetime.now() # Chốt giờ kết thúc
+        else:
+            # Nếu chỉ là đổi tốc độ thì cập nhật bình thường
+            patient.target_rate = request.new_target
+            
         db.commit()
         
         # 3. Bắn lệnh MQTT xuống thẳng thiết bị vật lý (ESP32)
@@ -93,6 +103,9 @@ def admit_patient(request: AdmitPatientRequest):
             old_assignment.device_id = None
             old_assignment.target_rate = 0.0
             old_assignment.is_active = False
+            # 🐛 Nếu bị "cướp" máy, coi như ca truyền đó kết thúc luôn
+            old_assignment.end_time = datetime.now()
+            old_assignment.bed_number = f"ARCHIVED_AUTO_{old_assignment.id}"
 
         # 2. KIỂM TRA XEM GIƯỜNG NÀY ĐÃ CÓ AI TRONG DATABASE CHƯA?
         existing_patient = db.query(Patient).filter(Patient.bed_number == request.bed).first()
@@ -103,6 +116,8 @@ def admit_patient(request: AdmitPatientRequest):
             existing_patient.device_id = request.device_id
             existing_patient.target_rate = request.target
             existing_patient.is_active = True
+            existing_patient.created_at = datetime.now() # Reset giờ bắt đầu
+            existing_patient.end_time = None # Đảm bảo giờ kết thúc là null
         else:
             # Nếu giường mới tinh -> Tạo hồ sơ mới
             new_patient = Patient(
@@ -127,5 +142,17 @@ def admit_patient(request: AdmitPatientRequest):
         import traceback
         traceback.print_exc() 
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
+
+# 🐛 TÍNH NĂNG MỚI: API LẤY LỊCH SỬ BỆNH NHÂN
+@router.get("/api/patients/history")
+def get_patients_history():
+    """Lấy danh sách các ca truyền đã kết thúc để hiển thị ở Tab Lịch Sử"""
+    db = SessionLocal()
+    try:
+        # Lấy những hồ sơ đã tắt (is_active = False) và sắp xếp mới nhất lên đầu
+        history = db.query(Patient).filter(Patient.is_active == False).order_by(Patient.end_time.desc()).limit(50).all()
+        return history
     finally:
         db.close()
