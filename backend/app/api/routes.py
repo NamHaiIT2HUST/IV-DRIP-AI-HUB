@@ -6,7 +6,9 @@ from app.db.postgres import SessionLocal
 from app.models.patient import Patient
 from app.core.config import settings
 from influxdb_client import InfluxDBClient
-from datetime import datetime  # 🐛 THÊM DÒNG NÀY ĐỂ XỬ LÝ THỜI GIAN
+from datetime import datetime, timezone, timedelta
+
+vn_tz = timezone(timedelta(hours=7))
 
 router = APIRouter()
 query_api = InfluxDBClient(url=settings.INFLUX_URL, token=settings.INFLUX_TOKEN, org=settings.INFLUX_ORG).query_api()
@@ -68,7 +70,7 @@ def update_target_rate(device_id: str, request: UpdateTargetRequest):
             if request.new_target == 0.0:
                 # 🛠️ CHỐT SỔ LỊCH SỬ
                 patient.is_active = False
-                patient.end_time = datetime.now() # Ghi giờ kết thúc thực tế
+                patient.end_time = datetime.now(vn_tz) # Ghi giờ kết thúc thực tế
                 patient.device_id = None # Trả máy
                 patient.bed_number = f"ARCHIVED_{patient.id}" # Trả giường
                 print(f"✅ Đã chốt sổ ca truyền của {patient.full_name}")
@@ -110,7 +112,7 @@ def admit_patient(request: AdmitPatientRequest):
             existing_patient.device_id = request.device_id
             existing_patient.target_rate = request.target
             existing_patient.is_active = True
-            existing_patient.created_at = datetime.now()
+            existing_patient.created_at = datetime.now(vn_tz)
             existing_patient.end_time = None
         else:
             # Tạo hồ sơ mới hoàn toàn
