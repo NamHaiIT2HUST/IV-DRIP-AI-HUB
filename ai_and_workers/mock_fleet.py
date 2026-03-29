@@ -40,7 +40,7 @@ try:
             # Tính toán chỉ số cho từng máy
             noise = random.uniform(-1.5, 1.5)
             current_rates[dev] = target_rates[dev] + noise
-            valve = min(target_rates[dev] * 1.5 + random.uniform(-2, 2), 90.0)
+            valve = min(target_rates[dev] * 0.6 + random.uniform(-2, 2), 90.0)
 
             # Bắn đạn lên Backend
             payload = {

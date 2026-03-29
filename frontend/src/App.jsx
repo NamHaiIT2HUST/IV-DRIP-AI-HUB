@@ -12,27 +12,49 @@ function App() {
     "Tòa B (Hồi sức cấp cứu)": ["Tầng 1 (ICU)", "Tầng 2"],
     "Tòa C (Nhi khoa)": ["Tầng 1", "Tầng 2"]
   };
-  const roomsData = ["Phòng 101", "Phòng 102", "Phòng 103", "Phòng 104"];
 
-  // 1. LƯU TRỮ DỮ LIỆU THEO DẠNG "CUỐN SỔ" (Mỗi phòng là 1 trang riêng biệt)
+  // 🐛 TÍNH NĂNG MỚI: HÀM TẠO TÊN PHÒNG TỰ ĐỘNG
+  const getDynamicRooms = (buildingName, floorName) => {
+    if (!buildingName || !floorName) return [];
+    
+    // Trích xuất chữ cái của Tòa (A, B, C...)
+    const bldgMatch = buildingName.match(/Tòa\s+([A-Z])/i);
+    const bldgChar = bldgMatch ? bldgMatch[1].toUpperCase() : "X";
+
+    // Trích xuất số của Tầng (1, 2, 3...)
+    const floorMatch = floorName.match(/Tầng\s+(\d+)/i);
+    const floorNum = floorMatch ? floorMatch[1] : "1";
+
+    // Sinh danh sách 4 phòng (VD: Phòng A101, A102...)
+    return ["01", "02", "03", "04"].map(num => `Phòng ${bldgChar}${floorNum}${num}`);
+  };
+
+  // Lấy danh sách phòng cho tầng hiện tại đang được chọn
+  const currentRooms = getDynamicRooms(location.building, location.floor);
+
+  // 1. LƯU TRỮ DỮ LIỆU THEO DẠNG "CUỐN SỔ"
   const [roomBeds, setRoomBeds] = useState(() => {
     const savedRooms = localStorage.getItem('iv_drip_rooms');
     return savedRooms ? JSON.parse(savedRooms) : {};
   });
 
-  // Tự động lưu vào LocalStorage mỗi khi có thay đổi để F5 không mất dữ liệu
   useEffect(() => {
     localStorage.setItem('iv_drip_rooms', JSON.stringify(roomBeds));
   }, [roomBeds]);
 
-  // 2. TẠO CHÌA KHÓA ĐỊNH DANH PHÒNG ĐANG ĐỨNG (VD: "Tòa A (Nội khoa)-Tầng 1-Phòng 101")
+  // 2. TẠO CHÌA KHÓA ĐỊNH DANH PHÒNG ĐANG ĐỨNG
   const currentRoomKey = `${location.building}-${location.floor}-${location.room}`;
 
-  // Lấy 4 giường của phòng hiện tại. Nếu phòng chưa có ai thì cấp 4 giường trống
+  // Lấy giường của phòng hiện tại
   const currentBeds = roomBeds[currentRoomKey] || [
     { id: "01", patient: null }, { id: "02", patient: null },
     { id: "03", patient: null }, { id: "04", patient: null },
   ];
+
+  const usedDevices = Object.values(roomBeds)
+    .flat()
+    .filter(bed => bed.patient)
+    .map(bed => bed.patient.device);
 
   // STATE HỆ THỐNG & MODAL
   const [devicesData, setDevicesData] = useState({});
@@ -66,22 +88,16 @@ function App() {
     if (!formData.name || !formData.device || !formData.target) return alert("Vui lòng điền đủ thông tin!");
     setIsUpdating(true);
     try {
-      // Bắn lệnh tạo bệnh nhân xuống Backend với mã giường duy nhất
       await axios.post(`http://localhost:8000/api/patients/admit`, {
         name: formData.name, 
         device_id: formData.device, 
         target: parseFloat(formData.target), 
-        bed: `${currentRoomKey}-${selectedBed}` // Gửi chính xác địa chỉ: Tòa-Tầng-Phòng-Giường
+        bed: `${currentRoomKey}-${selectedBed}`
       });
       
       const startTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-      
-      // Cập nhật thông tin bệnh nhân vào đúng giường của phòng hiện tại
       const updatedBeds = currentBeds.map(b => b.id === selectedBed ? { ...b, patient: { ...formData, startTime } } : b);
-      
-      // Lưu lại vào Cuốn sổ tổng
       setRoomBeds(prev => ({ ...prev, [currentRoomKey]: updatedBeds }));
-      
       setShowModal(false); 
       setFormData({ name: "", device: "ESP_01", target: "45.0" });
     } catch (error) { 
@@ -96,10 +112,7 @@ function App() {
   const handleDischarge = async (bedId, deviceId) => {
     if(!window.confirm(`Xác nhận giải phóng Giường ${bedId}?`)) return;
     try {
-      // Gửi lệnh tắt máy xuống Backend
       await axios.post(`http://localhost:8000/api/device/${deviceId}/target`, { new_target: 0.0 });
-      
-      // Xóa bệnh nhân khỏi giường của phòng hiện tại
       const updatedBeds = currentBeds.map(b => b.id === bedId ? { ...b, patient: null } : b);
       setRoomBeds(prev => ({ ...prev, [currentRoomKey]: updatedBeds }));
     } catch (error) { 
@@ -113,6 +126,21 @@ function App() {
     else if (location.floor) setLocation({ ...location, floor: null });
     else if (location.building) setLocation({ ...location, building: null });
   };
+
+  const getActiveInfusions = () => {
+    let activeList = [];
+    Object.entries(roomBeds).forEach(([roomKey, bedsArray]) => {
+      const [building, floor, room] = roomKey.split('-'); 
+      bedsArray.forEach(bed => {
+        if (bed.patient) {
+          activeList.push({ building, floor, room, bedId: bed.id, patient: bed.patient, device: bed.patient.device });
+        }
+      });
+    });
+    return activeList;
+  };
+
+  const activePatients = getActiveInfusions();
 
   return (
     <div className="medical-app">
@@ -148,13 +176,57 @@ function App() {
       <main className="content">
         {/* MÀN HÌNH 1: CHỌN TÒA NHÀ */}
         {!location.building && (
-          <div className="nav-grid">
-            {Object.keys(hospitalData).map(bldg => (
-              <div className="nav-card" key={bldg} onClick={() => setLocation({ ...location, building: bldg })}>
-                <div className="nav-icon">🏢</div><h3>{bldg}</h3><p>{hospitalData[bldg].length} Tầng hoạt động</p>
-              </div>
-            ))}
-          </div>
+          <>
+            <div className="nav-grid">
+              {Object.keys(hospitalData).map(bldg => (
+                <div className="nav-card" key={bldg} onClick={() => setLocation({ ...location, building: bldg })}>
+                  <div className="nav-icon">🏢</div><h3>{bldg}</h3><p>{hospitalData[bldg].length} Tầng hoạt động</p>
+                </div>
+              ))}
+            </div>
+
+            {/* BẢNG TỔNG HỢP BỆNH NHÂN ĐANG TRUYỀN */}
+            <div style={{ marginTop: '50px', background: '#1a1d29', borderRadius: '24px', padding: '30px', border: '1px solid #2d3142', boxShadow: '0 15px 35px rgba(0,0,0,0.2)' }}>
+              <h3 style={{ marginTop: 0, color: '#fff', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid #2d3142', paddingBottom: '15px' }}>
+                <span className="pulse-dot" style={{ color: '#00c853' }}></span>
+                TỔNG TRỰC: BỆNH NHÂN ĐANG TRUYỀN DỊCH ({activePatients.length})
+              </h3>
+
+              {activePatients.length === 0 ? (
+                <p style={{ color: '#9094a6', fontStyle: 'italic', textAlign: 'center', padding: '20px 0' }}>
+                  Toàn bộ thiết bị đang rảnh. Không có bệnh nhân nào đang truyền.
+                </p>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', textAlign: 'left', fontSize: '0.95rem' }}>
+                    <thead>
+                      <tr style={{ color: '#9094a6', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '1px' }}>
+                        <th style={{ padding: '15px 10px', borderBottom: '1px solid #2d3142' }}>Bệnh nhân</th>
+                        <th style={{ padding: '15px 10px', borderBottom: '1px solid #2d3142' }}>Vị trí Giường</th>
+                        <th style={{ padding: '15px 10px', borderBottom: '1px solid #2d3142' }}>Thiết bị</th>
+                        <th style={{ padding: '15px 10px', borderBottom: '1px solid #2d3142' }}>Bắt đầu</th>
+                        <th style={{ padding: '15px 10px', borderBottom: '1px solid #2d3142' }}>Mục tiêu</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {activePatients.map((info, idx) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid rgba(45, 49, 66, 0.4)' }}>
+                          <td style={{ padding: '15px 10px', color: '#4776ff', fontWeight: 'bold', fontSize: '1.1rem' }}>{info.patient.name}</td>
+                          <td style={{ padding: '15px 10px', color: '#e0e0e0' }}>
+                            <span style={{ fontWeight: 'bold' }}>{info.room} - Giường {info.bedId}</span><br/>
+                            <span style={{ fontSize: '0.8rem', color: '#9094a6' }}>{info.building}</span>
+                          </td>
+                          <td style={{ padding: '15px 10px', color: '#00c853', fontFamily: 'JetBrains Mono, monospace' }}>{info.device}</td>
+                          <td style={{ padding: '15px 10px', color: '#e0e0e0' }}>{info.patient.startTime}</td>
+                          <td style={{ padding: '15px 10px', color: '#ffb300', fontWeight: 'bold' }}>{info.patient.target} bpm</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         {/* MÀN HÌNH 2: CHỌN TẦNG */}
@@ -168,10 +240,10 @@ function App() {
           </div>
         )}
 
-        {/* MÀN HÌNH 3: CHỌN PHÒNG */}
+        {/* 🐛 MÀN HÌNH 3: CHỌN PHÒNG (Sử dụng mảng currentRooms đã được sinh tự động) */}
         {location.building && location.floor && !location.room && (
           <div className="nav-grid">
-            {roomsData.map(rm => (
+            {currentRooms.map(rm => (
               <div className="nav-card" key={rm} onClick={() => setLocation({ ...location, room: rm })}>
                 <div className="nav-icon">🚪</div><h3>{rm}</h3><p>4 Giường</p>
               </div>
@@ -182,7 +254,6 @@ function App() {
         {/* MÀN HÌNH 4: QUẢN LÝ GIƯỜNG TRONG PHÒNG ĐÃ CHỌN */}
         {location.room && (
           <div className="beds-grid">
-            {/* Vòng lặp lấy danh sách giường của đúng phòng hiện tại */}
             {currentBeds.map(bed => (
               bed.patient ? (
                 <BedCard key={bed.id} bed={bed} deviceData={devicesData[bed.patient.device]} onDischarge={handleDischarge} />
@@ -206,6 +277,7 @@ function App() {
         selectedBed={selectedBed} 
         room={location.room} 
         isUpdating={isUpdating} 
+        usedDevices={usedDevices}
       />
     </div>
   );
