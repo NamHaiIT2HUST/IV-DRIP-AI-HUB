@@ -49,6 +49,12 @@ def get_historical_data(device_id: str, minutes: int = 5):
 class UpdateTargetRequest(BaseModel):
     new_target: float
 
+class AdmitPatientRequest(BaseModel):
+    name: str
+    device_id: str
+    target: float
+    bed: str
+
 @router.post("/api/device/{device_id}/target")
 def update_target_rate(device_id: str, request: UpdateTargetRequest):
     """API để Bác sĩ cập nhật phác đồ điều trị"""
@@ -69,5 +75,31 @@ def update_target_rate(device_id: str, request: UpdateTargetRequest):
         send_mqtt_command(device_id, request.new_target)
         
         return {"status": "success", "message": f"Đã cập nhật phác đồ thành {request.new_target} bpm"}
+    finally:
+        db.close()
+
+@router.post("/api/patients/admit")
+def admit_patient(request: AdmitPatientRequest):
+    """API để Bác sĩ Nhập viện và tạo hồ sơ mới"""
+    db = SessionLocal()
+    try:
+        # 1. Tạo bệnh nhân mới tinh lưu vào PostgreSQL
+        new_patient = Patient(
+            full_name=request.name,
+            device_id=request.device_id,
+            target_rate=request.target,
+            bed_number=request.bed,
+            is_active=True
+        )
+        db.add(new_patient)
+        db.commit()
+        
+        # 2. Bắn lệnh MQTT xuống đánh thức cái máy phần cứng
+        send_mqtt_command(request.device_id, request.target)
+        
+        return {"status": "success", "message": "Đã tạo hồ sơ và bắt đầu truyền!"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         db.close()

@@ -4,7 +4,19 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import './App.css';
 
 function App() {
-  // 1. STATE QUẢN LÝ DANH SÁCH GIƯỜNG (Mặc định 4 giường trống)
+  // --- 1. STATE ĐIỀU HƯỚNG BỆNH VIỆN (MỚI) ---
+  const [location, setLocation] = useState({ building: null, floor: null, room: null });
+
+  // Dữ liệu giả lập cho cấu trúc bệnh viện
+  const hospitalData = {
+    "Tòa A (Nội khoa)": ["Tầng 1", "Tầng 2", "Tầng 3"],
+    "Tòa B (Hồi sức cấp cứu)": ["Tầng 1 (ICU)", "Tầng 2"],
+    "Tòa C (Nhi khoa)": ["Tầng 1", "Tầng 2"]
+  };
+
+  const roomsData = ["Phòng 101", "Phòng 102", "Phòng 103", "Phòng 104"];
+
+  // --- 2. STATE QUẢN LÝ GIƯỜNG (Giữ nguyên) ---
   const [beds, setBeds] = useState([
     { id: "01", patient: null },
     { id: "02", patient: null },
@@ -12,36 +24,28 @@ function App() {
     { id: "04", patient: null },
   ]);
 
-  // 2. STATE QUẢN LÝ DỮ LIỆU TỪNG THIẾT BỊ
-  // Cấu trúc: { "ESP_01": { telemetry: {...}, history: [...] }, "ESP_02": {...} }
   const [devicesData, setDevicesData] = useState({});
   const [isConnected, setIsConnected] = useState(false);
-
-  // 3. STATE CHO MODAL NHẬP VIỆN
   const [showModal, setShowModal] = useState(false);
   const [selectedBed, setSelectedBed] = useState(null);
   const [formData, setFormData] = useState({ name: "", device: "ESP_01", target: "45.0" });
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // --- KẾT NỐI WEBSOCKET LẮNG NGHE TẤT CẢ THIẾT BỊ ---
+  // --- WEBSOCKET ---
   useEffect(() => {
     const ws = new WebSocket("ws://localhost:8000/ws/telemetry");
     ws.onopen = () => setIsConnected(true);
-    
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       const deviceId = data.device;
-      
       const now = new Date();
       const timeString = now.getHours().toString().padStart(2, '0') + ':' + 
                          now.getMinutes().toString().padStart(2, '0') + ':' + 
                          now.getSeconds().toString().padStart(2, '0');
 
-      // Cập nhật dữ liệu động cho đúng thiết bị đang gửi lên
       setDevicesData(prev => {
         const prevDevice = prev[deviceId] || { telemetry: {}, history: [] };
         const newHistory = [...prevDevice.history, { time: timeString, current: data.current, target: data.target }];
-        
         return {
           ...prev,
           [deviceId]: {
@@ -51,12 +55,10 @@ function App() {
         };
       });
     };
-    
     ws.onclose = () => setIsConnected(false);
     return () => ws.close();
   }, []);
 
-  // --- HÀM 1: BÁC SĨ TẠO HỒ SƠ & BẮT ĐẦU TRUYỀN ---
   const handleCreatePatient = async () => {
     if (!formData.name || !formData.device || !formData.target) {
       return alert("Vui lòng điền đầy đủ thông tin!");
@@ -64,12 +66,14 @@ function App() {
     
     setIsUpdating(true);
     try {
-      // Bắn lệnh xuống ESP32 thông qua Backend
-      await axios.post(`http://localhost:8000/api/device/${formData.device}/target`, {
-        new_target: parseFloat(formData.target)
+      // 🐛 VÁ LỖI TẠI ĐÂY: Gọi đúng sang API Nhập viện (Tạo mới) thay vì API Cập nhật
+      await axios.post(`http://localhost:8000/api/patients/admit`, {
+        name: formData.name,
+        device_id: formData.device,
+        target: parseFloat(formData.target),
+        bed: selectedBed
       });
 
-      // Ghi nhận giờ bắt đầu và cập nhật trạng thái giường
       const startTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
       
       setBeds(beds.map(b => b.id === selectedBed ? { 
@@ -77,7 +81,6 @@ function App() {
         patient: { ...formData, startTime: startTime } 
       } : b));
 
-      // Đóng Modal và Reset Form
       setShowModal(false);
       setFormData({ name: "", device: "", target: "" });
     } catch (error) {
@@ -88,31 +91,20 @@ function App() {
     }
   };
 
-  // --- HÀM 2: KẾT THÚC TRUYỀN (XẢ GIƯỜNG) ---
   const handleDischarge = async (bedId, deviceId) => {
-    if(!window.confirm(`Xác nhận rút kim và giải phóng Giường ${bedId}?`)) return;
-    
+    if(!window.confirm(`Giải phóng Giường ${bedId}?`)) return;
     try {
-      // Gửi lệnh target = 0 để khóa van thiết bị lại
       await axios.post(`http://localhost:8000/api/device/${deviceId}/target`, { new_target: 0.0 });
-      // Xóa thông tin bệnh nhân khỏi giường
       setBeds(beds.map(b => b.id === bedId ? { ...b, patient: null } : b));
-    } catch (error) {
-      alert("Lỗi khi ngắt thiết bị!");
-    }
+    } catch (error) { alert("Lỗi ngắt thiết bị!"); }
   };
 
-  // --- COMPONENT CON: RENDER GIƯỜNG ĐANG HOẠT ĐỘNG ---
+  // --- RENDER GIƯỜNG ĐANG HOẠT ĐỘNG (Giữ nguyên) ---
   const renderActiveBed = (bed) => {
     const deviceId = bed.patient.device;
-    // Lấy data của thiết bị này, nếu chưa có thì dùng data mặc định
-    const deviceData = devicesData[deviceId] || { 
-      telemetry: { current: 0, target: bed.patient.target, angle: 0, ai_code: "WAIT", ai_message: "Đang đồng bộ..." }, 
-      history: [] 
-    };
+    const deviceData = devicesData[deviceId] || { telemetry: { current: 0, target: bed.patient.target, angle: 0, ai_code: "WAIT", ai_message: "Đang đồng bộ..." }, history: [] };
     const telemetry = deviceData.telemetry;
 
-    // Logic tính toán màu sắc AI cho riêng giường này
     let aiColorClass = "ai-normal";
     if (telemetry.ai_code?.includes("WARNING")) aiColorClass = "ai-warning";
     if (telemetry.ai_code?.includes("DANGER")) aiColorClass = "ai-danger";
@@ -141,11 +133,8 @@ function App() {
             {telemetry.current?.toFixed(1) || "0.0"}
           </h2>
           <span className="unit">giọt/phút (bpm)</span>
-          
           <div className="progress-container">
-            <div className="progress-bg">
-              <div className="progress-bar" style={{ width: `${progressWidth}%`, backgroundColor: isDanger ? '#ff5252' : '#00c853' }}></div>
-            </div>
+            <div className="progress-bg"><div className="progress-bar" style={{ width: `${progressWidth}%`, backgroundColor: isDanger ? '#ff5252' : '#00c853' }}></div></div>
             <div className="target-marker" style={{ left: `${Math.min((telemetry.target / (telemetry.target * 1.5 || 100)) * 100, 100)}%` }}>
               <span className="marker-label">Mục tiêu: {telemetry.target}</span>
             </div>
@@ -153,13 +142,8 @@ function App() {
         </div>
 
         <div className={`ai-panel ${aiColorClass}`} style={{marginBottom: '15px'}}>
-          <div className="ai-header">
-            <span className="ai-icon">🧠</span>
-            <span className="ai-title">AI CHẨN ĐOÁN</span>
-          </div>
-          <div className="ai-message" style={{fontSize: '0.85rem'}}>
-            {telemetry.ai_message}
-          </div>
+          <div className="ai-header"><span className="ai-icon">🧠</span><span className="ai-title">AI CHẨN ĐOÁN</span></div>
+          <div className="ai-message" style={{fontSize: '0.85rem'}}>{telemetry.ai_message}</div>
         </div>
 
         <div className="chart-container" style={{marginBottom: '0', padding: '10px'}}>
@@ -183,7 +167,7 @@ function App() {
       <header className="main-header">
         <div className="brand">
           <span className="icon-drop">🏥</span>
-          <h1>CMS <span className="light">CENTRAL MONITORING</span></h1>
+          <h1>IV DRIP <span className="light">HOSPITAL CMS</span></h1>
         </div>
         <div className={`status-pill ${isConnected ? 'online' : 'offline'}`}>
           <span className="pulse-dot"></span>
@@ -191,27 +175,91 @@ function App() {
         </div>
       </header>
 
+      {/* --- THANH BREADCRUMB ĐIỀU HƯỚNG --- */}
+      <div className="breadcrumb">
+        <span className="crumb" onClick={() => setLocation({ building: null, floor: null, room: null })}>Tổng quan Bệnh viện</span>
+        {location.building && (
+          <>
+            <span className="separator">/</span>
+            <span className="crumb" onClick={() => setLocation({ ...location, floor: null, room: null })}>{location.building}</span>
+          </>
+        )}
+        {location.floor && (
+          <>
+            <span className="separator">/</span>
+            <span className="crumb" onClick={() => setLocation({ ...location, room: null })}>{location.floor}</span>
+          </>
+        )}
+        {location.room && (
+          <>
+            <span className="separator">/</span>
+            <span className="crumb active">{location.room}</span>
+          </>
+        )}
+      </div>
+
       <main className="content">
-        {/* LƯỚI GRID HIỂN THỊ TẤT CẢ CÁC GIƯỜNG */}
-        <div className="beds-grid">
-          {beds.map(bed => (
-            bed.patient ? renderActiveBed(bed) : (
-              // COMPONENT CON: RENDER GIƯỜNG TRỐNG
-              <div className="bed-card-empty" key={bed.id} onClick={() => { setSelectedBed(bed.id); setShowModal(true); }}>
-                <div className="empty-icon">+</div>
-                <h3>GIƯỜNG {bed.id}</h3>
-                <p>Nhấn để thêm bệnh nhân</p>
+        
+        {/* LỚP 1: CHỌN TÒA NHÀ */}
+        {!location.building && (
+          <div className="nav-grid">
+            {Object.keys(hospitalData).map(bldg => (
+              <div className="nav-card" key={bldg} onClick={() => setLocation({ ...location, building: bldg })}>
+                <div className="nav-icon">🏢</div>
+                <h3>{bldg}</h3>
+                <p>{hospitalData[bldg].length} Tầng hoạt động</p>
               </div>
-            )
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
+
+        {/* LỚP 2: CHỌN TẦNG */}
+        {location.building && !location.floor && (
+          <div className="nav-grid">
+            {hospitalData[location.building].map(flr => (
+              <div className="nav-card" key={flr} onClick={() => setLocation({ ...location, floor: flr })}>
+                <div className="nav-icon">🚥</div>
+                <h3>{flr}</h3>
+                <p>4 Phòng điều trị</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* LỚP 3: CHỌN PHÒNG */}
+        {location.building && location.floor && !location.room && (
+          <div className="nav-grid">
+            {roomsData.map(rm => (
+              <div className="nav-card" key={rm} onClick={() => setLocation({ ...location, room: rm })}>
+                <div className="nav-icon">🚪</div>
+                <h3>{rm}</h3>
+                <p>4 Giường</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* LỚP 4: QUẢN LÝ GIƯỜNG (Khi đã chọn tới phòng) */}
+        {location.room && (
+          <div className="beds-grid">
+            {beds.map(bed => (
+              bed.patient ? renderActiveBed(bed) : (
+                <div className="bed-card-empty" key={bed.id} onClick={() => { setSelectedBed(bed.id); setShowModal(true); }}>
+                  <div className="empty-icon">+</div>
+                  <h3>GIƯỜNG {bed.id}</h3>
+                  <p>Nhấn để thêm bệnh nhân</p>
+                </div>
+              )
+            ))}
+          </div>
+        )}
       </main>
 
       {/* OVERLAY MODAL FORM NHẬP VIỆN */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h2 style={{marginTop: 0, color: '#fff'}}>NHẬP VIỆN - GIƯỜNG {selectedBed}</h2>
+            <h2 style={{marginTop: 0, color: '#fff'}}>NHẬP VIỆN - {location.room} - GIƯỜNG {selectedBed}</h2>
             
             <div className="form-group">
               <label>Tên bệnh nhân</label>

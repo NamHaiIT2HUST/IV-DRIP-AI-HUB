@@ -136,3 +136,81 @@ body {
 .btn-primary:hover { background: #00e676; transform: translateY(-2px); }
 .btn-secondary { flex: 1; background: transparent; color: var(--text-sub); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
 .btn-secondary:hover { background: #323645; color: #fff; }
+
+/* --- BREADCRUMB NAVIGATION --- */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card-bg);
+  padding: 15px 25px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  border: 1px solid var(--border-color);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.crumb {
+  color: var(--text-sub);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.crumb:hover {
+  color: var(--primary-soft);
+  text-decoration: underline;
+}
+
+.crumb.active {
+  color: #fff;
+  cursor: default;
+  text-decoration: none;
+}
+
+.separator {
+  color: var(--border-color);
+  font-weight: bold;
+}
+
+/* --- NAVIGATION CARDS (Tòa, Tầng, Phòng) --- */
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+}
+
+.nav-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.nav-card:hover {
+  background: rgba(71, 118, 255, 0.1);
+  border-color: var(--accent-blue);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.nav-icon {
+  font-size: 3.5rem;
+  margin-bottom: 15px;
+  filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+}
+
+.nav-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.3rem;
+  color: #fff;
+}
+
+.nav-card p {
+  margin: 0;
+  color: var(--text-sub);
+  font-size: 0.9rem;
+}
