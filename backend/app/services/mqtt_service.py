@@ -64,10 +64,26 @@ def on_message(client, userdata, msg):
     except Exception as e:
         print(f"Lỗi MQTT Service: {e}")
 
+mqtt_client_instance = None
+
 def start_mqtt():
+    global mqtt_client_instance
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     client.on_message = on_message
     client.connect("127.0.0.1", 1883, 60)
     client.subscribe("hospital/telemetry/#")
     client.loop_start()
+    
+    mqtt_client_instance = client # Lưu lại vào biến toàn cục
+    print("📡 MQTT Service đã khởi động và đang lắng nghe...")
     return client
+
+def send_mqtt_command(device_id: str, new_target: float):
+    """Hàm dùng để bắn lệnh từ Backend xuống ESP32"""
+    if mqtt_client_instance:
+        topic = f"hospital/command/{device_id}"
+        payload = json.dumps({"target_rate": new_target})
+        mqtt_client_instance.publish(topic, payload)
+        print(f"🔫 Đã bắn lệnh {new_target} bpm xuống {device_id}")
+        return True
+    return False

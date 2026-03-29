@@ -1,6 +1,9 @@
-from fastapi import APIRouter, WebSocket
+from fastapi import APIRouter, WebSocket, HTTPException
+from pydantic import BaseModel
 import asyncio
-from app.services.mqtt_service import latest_telemetry
+from app.services.mqtt_service import latest_telemetry, send_mqtt_command
+from app.db.postgres import SessionLocal
+from app.models.patient import Patient
 from app.core.config import settings
 from influxdb_client import InfluxDBClient
 
@@ -42,3 +45,29 @@ def get_historical_data(device_id: str, minutes: int = 5):
         return {"device_id": device_id, "data_points": len(results), "history": results}
     except Exception as e:
         return {"error": str(e)}
+    
+class UpdateTargetRequest(BaseModel):
+    new_target: float
+
+@router.post("/api/device/{device_id}/target")
+def update_target_rate(device_id: str, request: UpdateTargetRequest):
+    """API để Bác sĩ cập nhật phác đồ điều trị"""
+    
+    db = SessionLocal()
+    try:
+        # 1. Tìm bệnh nhân đang dùng máy này trong PostgreSQL
+        patient = db.query(Patient).filter(Patient.device_id == device_id, Patient.is_active == True).first()
+        
+        if not patient:
+            raise HTTPException(status_code=404, detail="Không tìm thấy bệnh nhân đang dùng thiết bị này!")
+            
+        # 2. Cập nhật phác đồ mới vào Database
+        patient.target_rate = request.new_target
+        db.commit()
+        
+        # 3. Bắn lệnh MQTT xuống thẳng thiết bị vật lý (ESP32)
+        send_mqtt_command(device_id, request.new_target)
+        
+        return {"status": "success", "message": f"Đã cập nhật phác đồ thành {request.new_target} bpm"}
+    finally:
+        db.close()
