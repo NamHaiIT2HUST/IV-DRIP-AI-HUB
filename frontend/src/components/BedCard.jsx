@@ -4,16 +4,46 @@ import { LineChart, Line, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function BedCard({ bed, deviceData, onDischarge }) {
   const deviceId = bed.patient.device;
-  const telemetry = deviceData?.telemetry || { 
-    current: 0, target: bed.patient.target, angle: 0, ai_code: "WAIT", ai_message: "Đang đồng bộ..." 
-  };
-  const history = deviceData?.history || [];
 
-  // State mới để điều khiển "vặn van" live
+  // TÍNH NĂNG MỚI: Thẻ giường tự nhớ mục tiêu hiện tại (lấy mặc định từ hồ sơ)
+  const [currentTarget, setCurrentTarget] = useState(parseFloat(bed.patient.target || 0));
+
+  // Đọc dữ liệu Real-time
+  const telemetry = deviceData?.telemetry || { 
+    current: 0, valve: 0, status: null 
+  };
+
+  // Vẽ biểu đồ: Đè mục tiêu hiện tại lên toàn bộ lịch sử
+  const rawHistory = deviceData?.history || [];
+  const chartData = rawHistory.map(item => ({
+    ...item,
+    target: currentTarget 
+  }));
+
+  // Chuyển đổi mã số AI (0, 1, 2)
+  let aiColorClass = "ai-analyzing";
+  let aiMessage = "Đang đồng bộ...";
+  let isDanger = false;
+
+  if (telemetry.status === 0) {
+    aiColorClass = "ai-normal";
+    aiMessage = "🟢 BÌNH THƯỜNG (An toàn)";
+  } else if (telemetry.status === 1) {
+    aiColorClass = "ai-danger";
+    aiMessage = "🔴 BÁO ĐỘNG: TẮC KIM / HẾT DỊCH!";
+    isDanger = true;
+  } else if (telemetry.status === 2) {
+    aiColorClass = "ai-warning";
+    aiMessage = "🟠 BÁO ĐỘNG: CHẢY QUÁ NHANH!";
+    isDanger = true;
+  }
+
+  // Tính toán thanh tiến trình
+  const progressWidth = Math.min((telemetry.current / (currentTarget * 1.5 || 100)) * 100, 100);
+
   const [newTarget, setNewTarget] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Hàm gọi API đổi tốc độ ngay lập tức
   const handleLiveUpdate = async () => {
     if (!newTarget || isNaN(newTarget)) return alert("Nhập số hợp lệ!");
     setIsUpdating(true);
@@ -21,20 +51,16 @@ export default function BedCard({ bed, deviceData, onDischarge }) {
       await axios.post(`http://localhost:8000/api/device/${deviceId}/target`, { 
         new_target: parseFloat(newTarget) 
       });
-      setNewTarget(""); // Xóa ô nhập sau khi gửi thành công
+      
+      // QUAN TRỌNG NHẤT: Bắn API xong là phải cập nhật số màu vàng trên màn hình ngay!
+      setCurrentTarget(parseFloat(newTarget)); 
+      setNewTarget("");
     } catch (error) {
       alert("Lỗi khi cập nhật phác đồ!");
     } finally {
       setIsUpdating(false);
     }
   };
-
-  let aiColorClass = "ai-normal";
-  if (telemetry.ai_code?.includes("WARNING")) aiColorClass = "ai-warning";
-  if (telemetry.ai_code?.includes("DANGER")) aiColorClass = "ai-danger";
-  if (telemetry.ai_code === "WAIT" || telemetry.ai_code === "ANALYZING") aiColorClass = "ai-analyzing";
-  const isDanger = telemetry.ai_code?.includes("DANGER");
-  const progressWidth = Math.min((telemetry.current / (telemetry.target * 1.5 || 100)) * 100, 100);
 
   return (
     <div className={`patient-card ${isDanger ? 'alert' : ''}`}>
@@ -60,8 +86,8 @@ export default function BedCard({ bed, deviceData, onDischarge }) {
           <div className="progress-bg">
             <div className="progress-bar" style={{ width: `${progressWidth}%`, backgroundColor: isDanger ? '#ff5252' : '#00c853' }}></div>
           </div>
-          <div className="target-marker" style={{ left: `${Math.min((telemetry.target / (telemetry.target * 1.5 || 100)) * 100, 100)}%` }}>
-            <span className="marker-label">Mục tiêu: {telemetry.target}</span>
+          <div className="target-marker" style={{ left: `${Math.min((currentTarget / (currentTarget * 1.5 || 100)) * 100, 100)}%` }}>
+            <span className="marker-label">Mục tiêu: {currentTarget}</span>
           </div>
         </div>
       </div>
@@ -70,13 +96,13 @@ export default function BedCard({ bed, deviceData, onDischarge }) {
         <div className="ai-header">
           <span className="ai-icon">🧠</span><span className="ai-title">AI CHẨN ĐOÁN</span>
         </div>
-        <div className="ai-message" style={{fontSize: '0.85rem'}}>{telemetry.ai_message}</div>
+        <div className="ai-message" style={{fontSize: '0.85rem', fontWeight: 'bold'}}>{aiMessage}</div>
       </div>
 
       <div className="chart-container" style={{marginBottom: '15px', padding: '10px'}}>
         <div style={{ width: '100%', height: 70 }}>
           <ResponsiveContainer>
-            <LineChart data={history} margin={{ top: 5, right: 0, left: -30, bottom: 0 }}>
+            <LineChart data={chartData} margin={{ top: 5, right: 0, left: -30, bottom: 0 }}>
               <YAxis stroke="#9094a6" fontSize={9} domain={['dataMin - 5', 'dataMax + 5']} />
               <Tooltip contentStyle={{ backgroundColor: '#242731', border: 'none', borderRadius: '8px' }} itemStyle={{ color: '#00c853', fontWeight: 'bold' }} />
               <Line type="monotone" dataKey="target" stroke="#ffb300" strokeWidth={1} dot={false} strokeDasharray="3 3" />
@@ -86,7 +112,6 @@ export default function BedCard({ bed, deviceData, onDischarge }) {
         </div>
       </div>
 
-      {/* TÍNH NĂNG MỚI: ĐIỀU CHỈNH LIVE */}
       <div className="live-control" style={{display: 'flex', gap: '8px', borderTop: '1px solid #2d3142', paddingTop: '15px'}}>
         <input 
           type="number" 

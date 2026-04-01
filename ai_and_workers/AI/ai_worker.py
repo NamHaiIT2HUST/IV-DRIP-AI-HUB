@@ -53,7 +53,7 @@ def on_message(client, userdata, msg):
         prediction = int(model.predict(patient_data)[0]) # Chuyển về int để JSON dễ đọc
         
         diagnosis = DIAGNOSIS_MAP.get(prediction, "Chưa rõ bệnh")
-        print(f"🏥 [Giường {device_id}] Tốc độ: {current:02d} | Van: {valve:02d} => {diagnosis}")
+        print(f"🏥 [Giường {device_id}] Tốc độ: {current} | Van: {valve} => {diagnosis}")
 
         payload_to_web = {
             "room_id": device_id, 

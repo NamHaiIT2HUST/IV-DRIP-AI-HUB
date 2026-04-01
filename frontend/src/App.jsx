@@ -4,6 +4,7 @@ import './App.css';
 import BedCard from './components/BedCard';
 import AdmitModal from './components/AdmitModal';
 import HistoryTab from './components/HistoryTab';
+import { useHospitalSocket } from './hooks/useHospitalSocket';
 
 function App() {
   const [location, setLocation] = useState({ building: null, floor: null, room: null });
@@ -50,39 +51,48 @@ function App() {
     .filter(bed => bed.patient)
     .map(bed => bed.patient.device);
 
-  // STATE HỆ THỐNG & MODAL
+ // --- STATE HỆ THỐNG & MODAL ---
   const [devicesData, setDevicesData] = useState({});
-  const [isConnected, setIsConnected] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedBed, setSelectedBed] = useState(null);
   const [formData, setFormData] = useState({ name: "", device: "ESP_01", target: "45.0" });
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // WEBSOCKET: CẬP NHẬT ĐỂ CHẠY MULTI-DEVICE (SỬA Ở ĐÂY)
+  // 🚀 SỬ DỤNG HOOK MỚI (Thay thế hoàn toàn logic cũ)
+  const { telemetryData, isConnected } = useHospitalSocket();
+
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8000/ws/telemetry");
-    ws.onopen = () => setIsConnected(true);
-    ws.onmessage = (event) => {
-      const allDevicesData = JSON.parse(event.data); // Nhận Dictionary {ESP_01: {...}, ESP_02: {...}}
-      const timeString = new Date().toLocaleTimeString('vi-VN', { hour12: false });
+    if (!telemetryData) return;
+
+    const deviceId = telemetryData.room_id || telemetryData.device; 
+    if (!deviceId) return;
+
+    const timeString = new Date().toLocaleTimeString('vi-VN', { hour12: false });
+
+    setDevicesData(prev => {
+      const prevDevice = prev[deviceId] || { telemetry: {}, history: [] };
       
-      setDevicesData(prev => {
-        let newState = { ...prev };
-        Object.keys(allDevicesData).forEach(deviceId => {
-          const data = allDevicesData[deviceId];
-          const prevDevice = prev[deviceId] || { telemetry: {}, history: [] };
-          const newHistory = [...prevDevice.history, { time: timeString, current: data.current, target: data.target }];
-          newState[deviceId] = { 
-            telemetry: data, 
-            history: newHistory.length > 30 ? newHistory.slice(-30) : newHistory 
-          };
-        });
-        return newState;
-      });
-    };
-    ws.onclose = () => setIsConnected(false);
-    return () => ws.close();
-  }, []);
+      // SỬA Ở ĐÂY: Dịch 'rate' của AI thành 'current' cho thẻ giường hiểu
+      const currentRate = telemetryData.rate || 0; 
+
+      const newHistory = [
+        ...prevDevice.history, 
+        { time: timeString, current: currentRate, target: 0 } // Số 0 này lát BedCard tự lo
+      ];
+
+      return {
+        ...prev,
+        [deviceId]: {
+          telemetry: {
+            current: currentRate, // Số to đùng ở giữa thẻ giường
+            valve: telemetryData.valve,
+            status: telemetryData.status
+          },
+          history: newHistory.length > 30 ? newHistory.slice(-30) : newHistory
+        }
+      };
+    });
+  }, [telemetryData]);
 
   // HÀM 1: NHẬP VIỆN
   const handleCreatePatient = async () => {
@@ -289,15 +299,21 @@ function App() {
               <div className="beds-grid">
                 {currentBeds.map(bed => (
                   bed.patient ? (
-                    <BedCard key={bed.id} bed={bed} deviceData={devicesData[bed.patient.device]} onDischarge={handleDischarge} />
+                    <BedCard 
+                      key={bed.id} 
+                      bed={bed} 
+                      // Truyền dữ liệu của đúng thiết bị mà giường đó đang dùng
+                      deviceData={devicesData[bed.patient.device]} 
+                      onDischarge={handleDischarge} 
+                    />
                   ) : (
                     <div className="bed-card-empty" key={bed.id} onClick={() => { setSelectedBed(bed.id); setShowModal(true); }}>
                       <div className="empty-icon">+</div><h3>GIƯỜNG {bed.id}</h3><p>Nhấn để thêm bệnh nhân</p>
                     </div>
                   )
                 ))}
-              </div>
-            )}
+  </div>
+)}
           </>
         ) : (
           <HistoryTab />
