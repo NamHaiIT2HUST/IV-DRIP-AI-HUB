@@ -273,3 +273,80 @@ body {
   from { transform: translateX(120%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
+
+/* Dành cho máy tính bảng (Tablet) hoặc màn hình laptop nhỏ (dưới 1024px) */
+@media (max-width: 1024px) {
+  .medical-app {
+    padding: 15px 20px;
+  }
+  
+  .beds-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  
+  .current-rate {
+    font-size: 4rem; /* Giảm cỡ chữ trên iPad */
+  }
+}
+
+/* Dành cho Điện thoại di động (Mobile) (dưới 768px) */
+@media (max-width: 768px) {
+  /* Xếp lại Header dọc xuống cho dễ bấm */
+  .main-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .brand {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  /* Cụm nút chuyển Tab Monitor / History dàn ngang toàn màn hình */
+  .brand > div {
+    width: 100%;
+    justify-content: space-between;
+    margin-right: 0 !important;
+  }
+  
+  .brand > div button {
+    flex: 1;
+    padding: 10px;
+    font-size: 0.85rem;
+  }
+
+  .status-pill {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Breadcrumb (Thanh điều hướng) cũng cần gọn lại */
+  .breadcrumb {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px;
+  }
+
+  /* Thu nhỏ chữ của số giọt/phút để không bị tràn thẻ */
+  .current-rate {
+    font-size: 3.5rem;
+  }
+
+  /* Cụm nút Nhập Viện (Modal) */
+  .btn-group {
+    flex-direction: column;
+  }
+
+  /* Cảnh báo Toast thu nhỏ lại cho vừa màn hình đt */
+  .toast-item {
+    width: 280px;
+    padding: 12px 15px;
+  }
+  .toast-container {
+    bottom: 20px;
+    right: 20px;
+  }
+}
