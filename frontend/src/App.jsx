@@ -58,6 +58,35 @@ function App() {
   const [formData, setFormData] = useState({ name: "", device: "ESP_01", target: "45.0" });
   const [isUpdating, setIsUpdating] = useState(false);
 
+  // 🔔 THÊM MỚI: State lưu danh sách thông báo và Âm thanh
+  const [notifications, setNotifications] = useState([]);
+  const alertSound = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+
+  const triggerNotification = (device, status, roomInfo) => {
+    // Chỉ kêu tiếng Beep khi là Báo động đỏ (status 1)
+    if (status === 1) {
+      alertSound.play().catch(e => console.log("Trình duyệt chặn tự động phát âm"));
+    }
+
+    const type = status === 1 ? 'danger' : 'warning';
+    const msg = status === 1 ? 'dấu hiệu tắc kim/hết dịch' : 'chảy quá nhanh';
+    
+    const newNotif = {
+      id: Date.now(),
+      title: status === 1 ? "🚨 BÁO ĐỘNG ĐỎ" : "⚠️ CẢNH BÁO",
+      message: `Thiết bị ${device} ở ${roomInfo} có ${msg}!`,
+      type: type,
+      time: new Date().toLocaleTimeString('vi-VN')
+    };
+
+    setNotifications(prev => [newNotif, ...prev].slice(0, 4)); // Giữ tối đa 4 cái trên màn hình
+
+    // Tự động xóa thông báo sau 6 giây
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== newNotif.id));
+    }, 6000);
+  };
+
   // 🚀 SỬ DỤNG HOOK MỚI (Thay thế hoàn toàn logic cũ)
   const { telemetryData, isConnected } = useHospitalSocket();
 
@@ -77,6 +106,18 @@ function App() {
       const currentRate = telemetryData.current !== undefined ? telemetryData.current : (telemetryData.rate || 0);
       const currentStatus = telemetryData.status !== undefined ? telemetryData.status : (telemetryData.ai_code || 0);
       const currentTarget = telemetryData.target_rate || telemetryData.target || prevDevice.telemetry.target || 0;
+
+      // Kích hoạt Toast nếu trạng thái thay đổi sang nguy hiểm
+      const prevStatus = prevDevice.telemetry.status;
+      if (prevStatus === 0 && (currentStatus === 1 || currentStatus === 2)) {
+        // Tìm phòng của thiết bị này để hiện lên thông báo cho chuẩn
+        const patientRoom = Object.entries(roomBeds).find(([roomKey, beds]) => 
+          beds.some(b => b.patient && b.patient.device === deviceId)
+        );
+        const roomName = patientRoom ? patientRoom[0].split('-')[2] : "Phòng không xác định";
+        
+        triggerNotification(deviceId, currentStatus, roomName);
+      }
 
       const newHistory = [
         ...prevDevice.history, 
@@ -337,6 +378,20 @@ function App() {
         isUpdating={isUpdating} 
         usedDevices={usedDevices}
       />
+
+      {/* RENDER TOAST CONTAINER Ở ĐÂY */}
+      <div className="toast-container">
+        {notifications.map(notif => (
+          <div key={notif.id} className={`toast-item toast-${notif.type}`}>
+            <div className="toast-header">
+              <strong>{notif.title}</strong>
+              <span className="toast-time">{notif.time}</span>
+            </div>
+            <div className="toast-body">{notif.message}</div>
+          </div>
+        ))}
+      </div>
+      
     </div>
   );
 }
