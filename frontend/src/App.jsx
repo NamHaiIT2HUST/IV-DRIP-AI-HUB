@@ -4,6 +4,7 @@ import './App.css';
 import BedCard from './components/BedCard';
 import AdmitModal from './components/AdmitModal';
 import HistoryTab from './components/HistoryTab';
+import { useHospitalSocket } from './hooks/useHospitalSocket';
 
 function App() {
   const [location, setLocation] = useState({ building: null, floor: null, room: null });
@@ -50,39 +51,94 @@ function App() {
     .filter(bed => bed.patient)
     .map(bed => bed.patient.device);
 
-  // STATE HỆ THỐNG & MODAL
+ // --- STATE HỆ THỐNG & MODAL ---
   const [devicesData, setDevicesData] = useState({});
-  const [isConnected, setIsConnected] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedBed, setSelectedBed] = useState(null);
   const [formData, setFormData] = useState({ name: "", device: "ESP_01", target: "45.0" });
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // WEBSOCKET: CẬP NHẬT ĐỂ CHẠY MULTI-DEVICE (SỬA Ở ĐÂY)
-  useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8000/ws/telemetry");
-    ws.onopen = () => setIsConnected(true);
-    ws.onmessage = (event) => {
-      const allDevicesData = JSON.parse(event.data); // Nhận Dictionary {ESP_01: {...}, ESP_02: {...}}
-      const timeString = new Date().toLocaleTimeString('vi-VN', { hour12: false });
-      
-      setDevicesData(prev => {
-        let newState = { ...prev };
-        Object.keys(allDevicesData).forEach(deviceId => {
-          const data = allDevicesData[deviceId];
-          const prevDevice = prev[deviceId] || { telemetry: {}, history: [] };
-          const newHistory = [...prevDevice.history, { time: timeString, current: data.current, target: data.target }];
-          newState[deviceId] = { 
-            telemetry: data, 
-            history: newHistory.length > 30 ? newHistory.slice(-30) : newHistory 
-          };
-        });
-        return newState;
-      });
+  // 🔔 THÊM MỚI: State lưu danh sách thông báo và Âm thanh
+  const [notifications, setNotifications] = useState([]);
+  const alertSound = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+
+  const triggerNotification = (device, status, roomInfo) => {
+    // Chỉ kêu tiếng Beep khi là Báo động đỏ (status 1)
+    if (status === 1) {
+      alertSound.play().catch(e => console.log("Trình duyệt chặn tự động phát âm"));
+    }
+
+    const type = status === 1 ? 'danger' : 'warning';
+    const msg = status === 1 ? 'dấu hiệu tắc kim/hết dịch' : 'chảy quá nhanh';
+    
+    const newNotif = {
+      id: Date.now(),
+      title: status === 1 ? "🚨 BÁO ĐỘNG ĐỎ" : "⚠️ CẢNH BÁO",
+      message: `Thiết bị ${device} ở ${roomInfo} có ${msg}!`,
+      type: type,
+      time: new Date().toLocaleTimeString('vi-VN')
     };
-    ws.onclose = () => setIsConnected(false);
-    return () => ws.close();
-  }, []);
+
+    setNotifications(prev => [newNotif, ...prev].slice(0, 4)); // Giữ tối đa 4 cái trên màn hình
+
+    // Tự động xóa thông báo sau 6 giây
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== newNotif.id));
+    }, 6000);
+  };
+
+  // 🚀 SỬ DỤNG HOOK MỚI (Thay thế hoàn toàn logic cũ)
+  const { telemetryData, isConnected } = useHospitalSocket();
+
+  // 🚀 CHỈ THAY THẾ ĐOẠN USEEFFECT NÀY, GIỮ NGUYÊN TOÀN BỘ CODE CÒN LẠI CỦA APP.JSX
+  useEffect(() => {
+    if (!telemetryData) return;
+
+    const deviceId = telemetryData.device || telemetryData.room_id; 
+    if (!deviceId) return;
+
+    const timeString = new Date().toLocaleTimeString('vi-VN', { hour12: false });
+
+    setDevicesData(prev => {
+      const prevDevice = prev[deviceId] || { telemetry: {}, history: [] };
+      
+      // Vét sạch biến, phòng trường hợp AI gửi tên khác nhau
+      const currentRate = telemetryData.current !== undefined ? telemetryData.current : (telemetryData.rate || 0);
+      const currentStatus = telemetryData.status !== undefined ? telemetryData.status : (telemetryData.ai_code || 0);
+      const currentTarget = telemetryData.target_rate || telemetryData.target || prevDevice.telemetry.target || 0;
+
+      // Kích hoạt Toast nếu trạng thái thay đổi sang nguy hiểm
+      const prevStatus = prevDevice.telemetry.status;
+      if (prevStatus === 0 && (currentStatus === 1 || currentStatus === 2)) {
+        // Tìm phòng của thiết bị này để hiện lên thông báo cho chuẩn
+        const patientRoom = Object.entries(roomBeds).find(([roomKey, beds]) => 
+          beds.some(b => b.patient && b.patient.device === deviceId)
+        );
+        const roomName = patientRoom ? patientRoom[0].split('-')[2] : "Phòng không xác định";
+        
+        triggerNotification(deviceId, currentStatus, roomName);
+      }
+
+      const newHistory = [
+        ...prevDevice.history, 
+        { time: timeString, current: currentRate, target: currentTarget }
+      ];
+
+      return {
+        ...prev,
+        [deviceId]: {
+          telemetry: {
+            ...telemetryData,
+            current: currentRate,
+            target: currentTarget,
+            status: currentStatus,
+            valve: telemetryData.valve
+          },
+          history: newHistory.length > 30 ? newHistory.slice(-30) : newHistory
+        }
+      };
+    });
+  }, [telemetryData]);
 
   // HÀM 1: NHẬP VIỆN
   const handleCreatePatient = async () => {
@@ -289,15 +345,21 @@ function App() {
               <div className="beds-grid">
                 {currentBeds.map(bed => (
                   bed.patient ? (
-                    <BedCard key={bed.id} bed={bed} deviceData={devicesData[bed.patient.device]} onDischarge={handleDischarge} />
+                    <BedCard 
+                      key={bed.id} 
+                      bed={bed} 
+                      // Truyền dữ liệu của đúng thiết bị mà giường đó đang dùng
+                      deviceData={devicesData[bed.patient.device]} 
+                      onDischarge={handleDischarge} 
+                    />
                   ) : (
                     <div className="bed-card-empty" key={bed.id} onClick={() => { setSelectedBed(bed.id); setShowModal(true); }}>
                       <div className="empty-icon">+</div><h3>GIƯỜNG {bed.id}</h3><p>Nhấn để thêm bệnh nhân</p>
                     </div>
                   )
                 ))}
-              </div>
-            )}
+  </div>
+)}
           </>
         ) : (
           <HistoryTab />
@@ -316,6 +378,20 @@ function App() {
         isUpdating={isUpdating} 
         usedDevices={usedDevices}
       />
+
+      {/* RENDER TOAST CONTAINER Ở ĐÂY */}
+      <div className="toast-container">
+        {notifications.map(notif => (
+          <div key={notif.id} className={`toast-item toast-${notif.type}`}>
+            <div className="toast-header">
+              <strong>{notif.title}</strong>
+              <span className="toast-time">{notif.time}</span>
+            </div>
+            <div className="toast-body">{notif.message}</div>
+          </div>
+        ))}
+      </div>
+      
     </div>
   );
 }

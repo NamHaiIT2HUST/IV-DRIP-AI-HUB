@@ -4,7 +4,7 @@ from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 INFLUX_URL = "http://localhost:8087"
-INFLUX_TOKEN = "my-super-secret-auth-token-123"  # <-- Sửa lại dùng đúng cái token cứng này
+INFLUX_TOKEN = "my-super-secret-auth-token-123" 
 INFLUX_ORG = "soict"
 INFLUX_BUCKET = "telemetry_bucket"
 

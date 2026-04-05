@@ -13,17 +13,17 @@ vn_tz = timezone(timedelta(hours=7))
 router = APIRouter()
 query_api = InfluxDBClient(url=settings.INFLUX_URL, token=settings.INFLUX_TOKEN, org=settings.INFLUX_ORG).query_api()
 
-@router.websocket("/ws/telemetry")
-async def websocket_endpoint(websocket: WebSocket):
-    """Ống nước Real-time cho Frontend"""
-    await websocket.accept()
-    try:
-        while True:
-            from app.services.mqtt_service import latest_telemetry
-            await websocket.send_json(latest_telemetry)
-            await asyncio.sleep(0.5)
-    except:
-        pass
+# @router.websocket("/ws/telemetry")
+# async def websocket_endpoint(websocket: WebSocket):
+#     """Ống nước Real-time cho Frontend"""
+#     await websocket.accept()
+#     try:
+#         while True:
+#             from app.services.mqtt_service import latest_telemetry
+#             await websocket.send_json(latest_telemetry)
+#             await asyncio.sleep(0.5)
+#     except:
+#         pass
 
 @router.get("/api/telemetry/{device_id}")
 def get_historical_data(device_id: str, minutes: int = 5):

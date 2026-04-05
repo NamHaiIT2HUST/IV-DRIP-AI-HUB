@@ -1,19 +1,53 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { LineChart, Line, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function BedCard({ bed, deviceData, onDischarge }) {
   const deviceId = bed.patient.device;
-  const telemetry = deviceData?.telemetry || { 
-    current: 0, target: bed.patient.target, angle: 0, ai_code: "WAIT", ai_message: "Đang đồng bộ..." 
-  };
-  const history = deviceData?.history || [];
 
-  // State mới để điều khiển "vặn van" live
+  // Quản lý mục tiêu (Target) cục bộ để phản ứng tức thì
+  const [currentTarget, setCurrentTarget] = useState(parseFloat(bed.patient.target || 0));
+
+  // Lấy dữ liệu Real-time
+  const telemetry = deviceData?.telemetry || { current: 0, status: 0, target: 0, valve: 0 };
+  const displayTarget = telemetry.target || currentTarget;
+  const currentStatus = telemetry.status;
+
+  // Chuẩn bị dữ liệu Sparkline
+  const rawHistory = deviceData?.history || [];
+  const chartData = rawHistory.map(item => ({
+    ...item,
+    target: displayTarget 
+  }));
+
+  // LOGIC BIẾN HÌNH (Màu sắc, Icon, Nhấp nháy)
+  let cardStatusClass = "card-normal";
+  let aiMessage = "Đang đồng bộ...";
+  let aiIcon = "🧠"; 
+  let colorTheme = "#00c853"; 
+
+  if (currentStatus === 0) {
+    cardStatusClass = "card-normal";
+    aiMessage = "BÌNH THƯỜNG (An toàn)";
+    aiIcon = "🟢";
+    colorTheme = "#00c853";
+  } else if (currentStatus === 1) {
+    cardStatusClass = "card-danger"; 
+    aiMessage = "BÁO ĐỘNG: TẮC NGHẼN / HẾT DỊCH!";
+    aiIcon = "🚨"; 
+    colorTheme = "#ff5252";
+  } else if (currentStatus === 2) {
+    cardStatusClass = "card-warning"; 
+    aiMessage = "CẢNH BÁO: CHẢY QUÁ NHANH!";
+    aiIcon = "⚠️"; 
+    colorTheme = "#ffb300";
+  }
+
+  const progressWidth = Math.min((telemetry.current / (displayTarget * 1.5 || 100)) * 100, 100);
+
   const [newTarget, setNewTarget] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Hàm gọi API đổi tốc độ ngay lập tức
   const handleLiveUpdate = async () => {
     if (!newTarget || isNaN(newTarget)) return alert("Nhập số hợp lệ!");
     setIsUpdating(true);
@@ -21,23 +55,17 @@ export default function BedCard({ bed, deviceData, onDischarge }) {
       await axios.post(`http://localhost:8000/api/device/${deviceId}/target`, { 
         new_target: parseFloat(newTarget) 
       });
-      setNewTarget(""); // Xóa ô nhập sau khi gửi thành công
+      setCurrentTarget(parseFloat(newTarget)); 
+      setNewTarget("");
     } catch (error) {
-      alert("Lỗi khi cập nhật phác đồ!");
+      alert("Lỗi cập nhật phác đồ!");
     } finally {
       setIsUpdating(false);
     }
   };
 
-  let aiColorClass = "ai-normal";
-  if (telemetry.ai_code?.includes("WARNING")) aiColorClass = "ai-warning";
-  if (telemetry.ai_code?.includes("DANGER")) aiColorClass = "ai-danger";
-  if (telemetry.ai_code === "WAIT" || telemetry.ai_code === "ANALYZING") aiColorClass = "ai-analyzing";
-  const isDanger = telemetry.ai_code?.includes("DANGER");
-  const progressWidth = Math.min((telemetry.current / (telemetry.target * 1.5 || 100)) * 100, 100);
-
   return (
-    <div className={`patient-card ${isDanger ? 'alert' : ''}`}>
+    <div className={`patient-card ${cardStatusClass}`} style={{ transition: 'all 0.4s ease' }}>
       <div className="card-header">
         <div className="bed-info">
           <span className="label">GIƯỜNG {bed.id}</span>
@@ -52,58 +80,49 @@ export default function BedCard({ bed, deviceData, onDischarge }) {
       </div>
 
       <div className="main-display" style={{marginBottom: '15px'}}>
-        <h2 className="current-rate" style={{ color: isDanger ? '#ff5252' : '#00c853', fontSize: '5rem' }}>
+        <h2 className="current-rate" style={{ color: colorTheme, fontSize: '5rem', textShadow: `0 0 25px ${colorTheme}30`, transition: 'color 0.3s' }}>
           {telemetry.current?.toFixed(1) || "0.0"}
         </h2>
         <span className="unit">giọt/phút (bpm)</span>
+        
         <div className="progress-container">
           <div className="progress-bg">
-            <div className="progress-bar" style={{ width: `${progressWidth}%`, backgroundColor: isDanger ? '#ff5252' : '#00c853' }}></div>
+            <div className="progress-bar" style={{ width: `${progressWidth}%`, backgroundColor: colorTheme, transition: 'width 0.5s ease-in-out, background-color 0.3s' }}></div>
           </div>
-          <div className="target-marker" style={{ left: `${Math.min((telemetry.target / (telemetry.target * 1.5 || 100)) * 100, 100)}%` }}>
-            <span className="marker-label">Mục tiêu: {telemetry.target}</span>
+          <div className="target-marker" style={{ left: `${Math.min((displayTarget / (displayTarget * 1.5 || 100)) * 100, 100)}%`, transition: 'left 0.5s ease' }}>
+            <span className="marker-label">Mục tiêu: {displayTarget}</span>
           </div>
         </div>
       </div>
 
-      <div className={`ai-panel ${aiColorClass}`} style={{marginBottom: '15px'}}>
-        <div className="ai-header">
-          <span className="ai-icon">🧠</span><span className="ai-title">AI CHẨN ĐOÁN</span>
+      <div className="ai-panel" style={{ marginBottom: '15px', background: `${colorTheme}15`, border: `1px solid ${colorTheme}40`, borderRadius: '12px', padding: '10px' }}>
+        <div className="ai-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span className="ai-icon" style={{fontSize: '1.2rem'}}>{aiIcon}</span>
+          <span className="ai-title" style={{color: colorTheme, fontWeight: 'bold', fontSize: '0.8rem'}}>AI CHẨN ĐOÁN</span>
         </div>
-        <div className="ai-message" style={{fontSize: '0.85rem'}}>{telemetry.ai_message}</div>
+        <div className="ai-message" style={{fontSize: '0.9rem', fontWeight: 'bold', color: colorTheme, marginTop: '4px'}}>
+          {aiMessage}
+        </div>
       </div>
 
-      <div className="chart-container" style={{marginBottom: '15px', padding: '10px'}}>
-        <div style={{ width: '100%', height: 70 }}>
+      <div className="chart-container" style={{marginBottom: '15px', padding: '0 5px'}}>
+        <div style={{ width: '100%', height: 65 }}>
           <ResponsiveContainer>
-            <LineChart data={history} margin={{ top: 5, right: 0, left: -30, bottom: 0 }}>
-              <YAxis stroke="#9094a6" fontSize={9} domain={['dataMin - 5', 'dataMax + 5']} />
-              <Tooltip contentStyle={{ backgroundColor: '#242731', border: 'none', borderRadius: '8px' }} itemStyle={{ color: '#00c853', fontWeight: 'bold' }} />
-              <Line type="monotone" dataKey="target" stroke="#ffb300" strokeWidth={1} dot={false} strokeDasharray="3 3" />
-              <Line type="monotone" dataKey="current" stroke={isDanger ? "#ff5252" : "#00c853"} strokeWidth={2} dot={false} isAnimationActive={false} />
+            <LineChart data={chartData}>
+              <Tooltip contentStyle={{ backgroundColor: '#242731', border: 'none', borderRadius: '8px', fontSize: '11px' }} itemStyle={{ fontWeight: 'bold' }} />
+              <Line type="monotone" dataKey="target" stroke="#9094a6" strokeWidth={1} dot={false} strokeDasharray="3 3" isAnimationActive={false} />
+              <Line type="monotone" dataKey="current" stroke={colorTheme} strokeWidth={2.5} dot={false} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* TÍNH NĂNG MỚI: ĐIỀU CHỈNH LIVE */}
       <div className="live-control" style={{display: 'flex', gap: '8px', borderTop: '1px solid #2d3142', paddingTop: '15px'}}>
-        <input 
-          type="number" 
-          placeholder="Tốc độ mới..." 
-          value={newTarget}
-          onChange={(e) => setNewTarget(e.target.value)}
-          style={{flex: 1, background: '#0f111a', border: '1px solid #2d3142', color: '#fff', padding: '8px 12px', borderRadius: '6px'}}
-        />
-        <button 
-          onClick={handleLiveUpdate} 
-          disabled={isUpdating}
-          style={{background: '#4776ff', color: '#fff', border: 'none', padding: '0 15px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold'}}
-        >
+        <input type="number" placeholder="Tốc độ mới..." value={newTarget} onChange={(e) => setNewTarget(e.target.value)} style={{flex: 1, background: '#0f111a', border: '1px solid #2d3142', color: '#fff', padding: '8px 12px', borderRadius: '8px'}} />
+        <button onClick={handleLiveUpdate} disabled={isUpdating} style={{ background: isUpdating ? '#2d3142' : '#4776ff', color: '#fff', border: 'none', padding: '0 18px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s' }}>
           {isUpdating ? "..." : "ĐỔI"}
         </button>
       </div>
-
     </div>
   );
 }
