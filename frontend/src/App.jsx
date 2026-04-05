@@ -61,10 +61,11 @@ function App() {
   // 🚀 SỬ DỤNG HOOK MỚI (Thay thế hoàn toàn logic cũ)
   const { telemetryData, isConnected } = useHospitalSocket();
 
+  // 🚀 CHỈ THAY THẾ ĐOẠN USEEFFECT NÀY, GIỮ NGUYÊN TOÀN BỘ CODE CÒN LẠI CỦA APP.JSX
   useEffect(() => {
     if (!telemetryData) return;
 
-    const deviceId = telemetryData.room_id || telemetryData.device; 
+    const deviceId = telemetryData.device || telemetryData.room_id; 
     if (!deviceId) return;
 
     const timeString = new Date().toLocaleTimeString('vi-VN', { hour12: false });
@@ -72,21 +73,25 @@ function App() {
     setDevicesData(prev => {
       const prevDevice = prev[deviceId] || { telemetry: {}, history: [] };
       
-      // SỬA Ở ĐÂY: Dịch 'rate' của AI thành 'current' cho thẻ giường hiểu
-      const currentRate = telemetryData.rate || 0; 
+      // Vét sạch biến, phòng trường hợp AI gửi tên khác nhau
+      const currentRate = telemetryData.current !== undefined ? telemetryData.current : (telemetryData.rate || 0);
+      const currentStatus = telemetryData.status !== undefined ? telemetryData.status : (telemetryData.ai_code || 0);
+      const currentTarget = telemetryData.target_rate || telemetryData.target || prevDevice.telemetry.target || 0;
 
       const newHistory = [
         ...prevDevice.history, 
-        { time: timeString, current: currentRate, target: 0 } // Số 0 này lát BedCard tự lo
+        { time: timeString, current: currentRate, target: currentTarget }
       ];
 
       return {
         ...prev,
         [deviceId]: {
           telemetry: {
-            current: currentRate, // Số to đùng ở giữa thẻ giường
-            valve: telemetryData.valve,
-            status: telemetryData.status
+            ...telemetryData,
+            current: currentRate,
+            target: currentTarget,
+            status: currentStatus,
+            valve: telemetryData.valve
           },
           history: newHistory.length > 30 ? newHistory.slice(-30) : newHistory
         }

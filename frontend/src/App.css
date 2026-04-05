@@ -218,3 +218,22 @@ body {
   color: var(--text-sub);
   font-size: 0.9rem;
 }
+
+/* =========================================
+   HIỆU ỨNG CẢNH BÁO CHO SMART ROOM CARD
+========================================= */
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.4); border-color: #ff5252; }
+  70% { box-shadow: 0 0 0 15px rgba(255, 82, 82, 0); border-color: #ff1744; }
+  100% { box-shadow: 0 0 0 0 rgba(255, 82, 82, 0); border-color: #ff5252; }
+}
+
+@keyframes pulse-yellow {
+  0% { box-shadow: 0 0 0 0 rgba(255, 179, 0, 0.4); border-color: #ffb300; }
+  70% { box-shadow: 0 0 0 15px rgba(255, 179, 0, 0); border-color: #ffc107; }
+  100% { box-shadow: 0 0 0 0 rgba(255, 179, 0, 0); border-color: #ffb300; }
+}
+
+.card-danger { animation: pulse-red 1.5s infinite; border: 2px solid #ff5252 !important; }
+.card-warning { animation: pulse-yellow 1.5s infinite; border: 2px solid #ffb300 !important; }
+.card-normal { border: 1px solid #2d3142; }
