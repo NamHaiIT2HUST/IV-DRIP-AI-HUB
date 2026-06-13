@@ -24,7 +24,7 @@ const int POT_PIN = 4;
 // --- KHAI BÁO CÁC MODULE OOP ---
 LoadCellSensor ivScale(5, 6, 420.0);       // HX711: DOUT=5, SCK=6
 DropSensor irSensor(2);                    // IR Sensor: GPIO 2
-AlarmSystem alarm(12, 13, 14, 27);         // Đỏ=12, Vàng=13, Xanh=14, Còi=27
+AlarmSystem ivAlarm(12, 13, 14, 27);         // Đỏ=12, Vàng=13, Xanh=14, Còi=27
 
 // --- KHAI BÁO MẠNG VÀ MQTT ---
 const char* ssid = "Tang3";        
@@ -81,7 +81,7 @@ void setup() {
     // Khởi động các Module
     ivScale.begin();
     irSensor.begin();
-    alarm.begin();
+    ivAlarm.begin();
 
     setup_wifi();
     client.setServer(mqtt_server, 1883);
@@ -114,9 +114,9 @@ void loop() {
     }
 
     // 4. Kích hoạt Loa & Đèn theo AI Status
-    if (aiStatus == 1) alarm.setDanger();
-    else if (aiStatus == 2) alarm.setWarning();
-    else alarm.setNormal();
+    if (aiStatus == 1) ivAlarm.setDanger();
+    else if (aiStatus == 2) ivAlarm.setWarning();
+    else ivAlarm.setNormal();
 
     // 5. Cập nhật OLED
     display.clearDisplay();
