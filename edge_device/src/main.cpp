@@ -14,8 +14,9 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 Servo valveServo;
 const int SERVO_PIN = 18;     // Chân PWM cho Servo
-const int POT_PIN = 4;       // Chân ADC đọc biến trở (Giả lập cảm biến giọt)
+const int POT_PIN = 4;        // Chân ADC đọc biến trở (Giả lập cảm biến giọt)
 
+// ✏️ SỬA 3 DÒNG NÀY CHO ĐÚNG VỚI MẠNG NHÀ BẠN
 const char* ssid = "Tang3";        
 const char* password = "23092005";
 const char* mqtt_server = "192.168.1.103";     
@@ -62,7 +63,6 @@ void reconnect() {
         Serial.print("Đang kết nối MQTT Broker...");
         if (client.connect(device_id)) {
             Serial.println(" Thành công!");
-            // Đăng ký lắng nghe kênh lệnh riêng của thiết bị này
             char command_topic[50];
             sprintf(command_topic, "hospital/command/%s", device_id);
             client.subscribe(command_topic);
