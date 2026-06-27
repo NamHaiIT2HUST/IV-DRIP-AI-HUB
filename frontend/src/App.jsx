@@ -3,6 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import mqtt from 'mqtt';
 import axios from 'axios';
 import { Activity, Droplets, Wind, AlertTriangle, AlertCircle, CheckCircle, Wifi, WifiOff, Settings, RefreshCw } from 'lucide-react';
+import SimulatorPanel from './components/SimulatorPanel';
 import './App.css';
 
 // Configuration
@@ -424,8 +425,11 @@ function App() {
         </div>
       </div>
 
+      {/* Simulator Panel */}
+      <SimulatorPanel mqttClient={mqttClientRef.current} servoAngle={telemetry.servo_angle} />
+
       {/* Alerts Section */}
-      <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+      <div className="mt-6 bg-gray-800 rounded-lg p-4 border border-gray-700">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <AlertTriangle className="w-5 h-5 text-yellow-400" />
           Recent Alerts

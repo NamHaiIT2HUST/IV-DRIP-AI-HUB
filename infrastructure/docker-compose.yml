@@ -9,7 +9,7 @@ services:
       - DOCKER_INFLUXDB_INIT_PASSWORD=secretpassword123
       - DOCKER_INFLUXDB_INIT_ORG=soict
       - DOCKER_INFLUXDB_INIT_BUCKET=telemetry_bucket
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-super-secret-auth-token-123
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=L-Xz9sxCt6nxdlNJJsWMRoXSNGeKgI5z0_6dv_J2HQw4evAix-ry6x0SraDPjCYjtDHQBtj0BU8CAFAQm5QYVw==
     volumes:
       - influxdb_data_final:/var/lib/influxdb2
 

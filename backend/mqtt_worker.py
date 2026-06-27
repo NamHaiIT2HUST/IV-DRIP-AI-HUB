@@ -21,16 +21,16 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 from loguru import logger
 
 # Configuration from environment or defaults
-MQTT_BROKER = "localhost"
+MQTT_BROKER = "172.16.41.162"
 MQTT_PORT = 1883
 MQTT_TOPIC = "ivdrip/telemetry"
-MQTT_USER = "ivdrip"
-MQTT_PASS = "ivdrip123"
+MQTT_USER = ""
+MQTT_PASS = ""
 
-INFLUXDB_URL = "http://localhost:8086"
-INFLUXDB_TOKEN = "ivdrip-token"
-INFLUXDB_ORG = "ivdrip-org"
-INFLUXDB_BUCKET = "ivdrip-data"
+INFLUXDB_URL = "http://localhost:8087"
+INFLUXDB_TOKEN = "L-Xz9sxCt6nxdlNJJsWMRoXSNGeKgI5z0_6dv_J2HQw4evAix-ry6x0SraDPjCYjtDHQBtj0BU8CAFAQm5QYVw=="
+INFLUXDB_ORG = "soict"
+INFLUXDB_BUCKET = "telemetry_bucket"
 
 # Global flag for graceful shutdown
 running = True

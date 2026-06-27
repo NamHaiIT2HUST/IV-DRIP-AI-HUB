@@ -14,8 +14,8 @@
 
 // Pattern timing (ms)
 #define PATTERN_PULSE_PERIOD 1000
-#define PATTERN_INTERMITTENT_ON 200
-#define PATTERN_INTERMITTENT_OFF 800
+#define PATTERN_INTERMITTENT_ON 100
+#define PATTERN_INTERMITTENT_OFF 100
 
 AlarmSystem::AlarmSystem(uint8_t red_pin, uint8_t yellow_pin, uint8_t green_pin, uint8_t buzzer_pin)
     : _redPin(red_pin), _yellowPin(yellow_pin), _greenPin(green_pin), _buzzerPin(buzzer_pin),
@@ -54,7 +54,7 @@ void AlarmSystem::updateStatus(SafetyStatus status) {
             break;
             
         case STATUS_DANGER:
-            _buzzerPattern = ALARM_CONTINUOUS;
+            _buzzerPattern = ALARM_INTERMITTENT;
             _alarmActive = true;
             break;
             

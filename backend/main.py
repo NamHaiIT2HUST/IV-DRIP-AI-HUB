@@ -23,10 +23,10 @@ from loguru import logger
 import uvicorn
 
 # Configuration
-INFLUXDB_URL = "http://localhost:8086"
-INFLUXDB_TOKEN = "ivdrip-token"
-INFLUXDB_ORG = "ivdrip-org"
-INFLUXDB_BUCKET = "ivdrip-data"
+INFLUXDB_URL = "http://localhost:8087"
+INFLUXDB_TOKEN = "L-Xz9sxCt6nxdlNJJsWMRoXSNGeKgI5z0_6dv_J2HQw4evAix-ry6x0SraDPjCYjtDHQBtj0BU8CAFAQm5QYVw=="
+INFLUXDB_ORG = "soict"
+INFLUXDB_BUCKET = "telemetry_bucket"
 
 # Initialize FastAPI app
 app = FastAPI(

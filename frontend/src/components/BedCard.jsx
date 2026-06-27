@@ -9,8 +9,8 @@ export default function BedCard({ bed, deviceData, onDischarge }) {
   const [currentTarget, setCurrentTarget] = useState(parseFloat(bed.patient.target || 0));
 
   // Lấy dữ liệu Real-time
-  const telemetry = deviceData?.telemetry || { current: 0, status: 0, target: 0, valve: 0 };
-  const displayTarget = telemetry.target || currentTarget;
+  const telemetry = deviceData?.telemetry || { bpm: 0, status: 'normal', target_bpm: 0, servo_angle: 0 };
+  const displayTarget = telemetry.target_bpm || currentTarget;
   const currentStatus = telemetry.status;
 
   // Chuẩn bị dữ liệu Sparkline
@@ -26,24 +26,24 @@ export default function BedCard({ bed, deviceData, onDischarge }) {
   let aiIcon = "🧠"; 
   let colorTheme = "#00c853"; 
 
-  if (currentStatus === 0) {
+  if (currentStatus === 'normal') {
     cardStatusClass = "card-normal";
     aiMessage = "BÌNH THƯỜNG (An toàn)";
     aiIcon = "🟢";
     colorTheme = "#00c853";
-  } else if (currentStatus === 1) {
+  } else if (currentStatus === 'danger') {
     cardStatusClass = "card-danger"; 
     aiMessage = "BÁO ĐỘNG: TẮC NGHẼN / HẾT DỊCH!";
     aiIcon = "🚨"; 
     colorTheme = "#ff5252";
-  } else if (currentStatus === 2) {
+  } else if (currentStatus === 'warning') {
     cardStatusClass = "card-warning"; 
     aiMessage = "CẢNH BÁO: CHẢY QUÁ NHANH!";
     aiIcon = "⚠️"; 
     colorTheme = "#ffb300";
   }
 
-  const progressWidth = Math.min((telemetry.current / (displayTarget * 1.5 || 100)) * 100, 100);
+  const progressWidth = Math.min((telemetry.bpm / (displayTarget * 1.5 || 100)) * 100, 100);
 
   const [newTarget, setNewTarget] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -81,7 +81,7 @@ export default function BedCard({ bed, deviceData, onDischarge }) {
 
       <div className="main-display" style={{marginBottom: '15px'}}>
         <h2 className="current-rate" style={{ color: colorTheme, fontSize: '5rem', textShadow: `0 0 25px ${colorTheme}30`, transition: 'color 0.3s' }}>
-          {telemetry.current?.toFixed(1) || "0.0"}
+          {telemetry.bpm?.toFixed(1) || "0.0"}
         </h2>
         <span className="unit">giọt/phút (bpm)</span>
         

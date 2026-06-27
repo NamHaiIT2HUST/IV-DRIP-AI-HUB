@@ -6,6 +6,8 @@
 #include "DropSensor.h"
 #include "esp_timer.h"
 
+portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
+
 // Static array to hold sensor instances for ISR (max 8 sensors)
 static DropSensor* s_dropSensors[8] = {nullptr};
 
@@ -39,17 +41,15 @@ bool DropSensor::begin() {
     // Store instance pointer for ISR
     s_dropSensors[slot] = this;
     
-    // Attach interrupt
-    if (attachInterruptArg(_interruptPin, isrHandler, (void*)this, FALLING) == 0) {
-        Serial.println("[DropSensor] Interrupt attached successfully");
-        _initialized = true;
-        _statusFlags |= DROP_FLAG_VALID;
-        _lastDropTime = esp_timer_get_time() / 1000;  // Convert to ms
-        return true;
-    }
+    // Tạm thời comment ngắt
+    // attachInterruptArg(_interruptPin, isrHandler, (void*)this, FALLING);
     
-    Serial.println("[DropSensor] ERROR: Failed to attach interrupt!");
-    return false;
+    // Đọc trạng thái chân để debug
+    int pinState = digitalRead(_interruptPin);
+    Serial.printf("[DropSensor] Debug - Trạng thái chân IR (%d): %d\n", _interruptPin, pinState);
+    
+    _initialized = true;
+    return true;
 }
 
 void IRAM_ATTR DropSensor::isrHandler(void* arg) {
@@ -87,9 +87,9 @@ float DropSensor::getBPM() {
     if (!_initialized) return 0.0f;
     
     // Disable interrupts briefly for consistent reading
-    portENTER_CRITICAL();
+    portENTER_CRITICAL(&mux);
     float bpm = calculateBPM();
-    portEXIT_CRITICAL();
+    portEXIT_CRITICAL(&mux);
     
     _currentBPM = bpm;
     return bpm;
@@ -145,9 +145,9 @@ bool DropSensor::isValidDrop() {
 }
 
 uint32_t DropSensor::getDropCount() {
-    portENTER_CRITICAL();
+    portENTER_CRITICAL(&mux);
     uint32_t count = _dropCount;
-    portEXIT_CRITICAL();
+    portEXIT_CRITICAL(&mux);
     return count;
 }
 
@@ -168,14 +168,14 @@ uint32_t DropSensor::getTimeSinceLastDrop() {
 }
 
 void DropSensor::reset() {
-    portENTER_CRITICAL();
+    portENTER_CRITICAL(&mux);
     _dropCount = 0;
     _lastDropTime = 0;
     _lastValidDropTime = 0;
     _dropDetected = false;
     memset(_dropTimestamps, 0, sizeof(_dropTimestamps));
     _timestampIndex = 0;
-    portEXIT_CRITICAL();
+    portEXIT_CRITICAL(&mux);
 }
 
 uint8_t DropSensor::getStatus() {

@@ -4,7 +4,7 @@ from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 INFLUX_URL = "http://localhost:8087"
-INFLUX_TOKEN = "my-super-secret-auth-token-123" 
+INFLUX_TOKEN = "L-Xz9sxCt6nxdlNJJsWMRoXSNGeKgI5z0_6dv_J2HQw4evAix-ry6x0SraDPjCYjtDHQBtj0BU8CAFAQm5QYVw=="
 INFLUX_ORG = "soict"
 INFLUX_BUCKET = "telemetry_bucket"
 
@@ -13,7 +13,7 @@ write_api = client_influx.write_api(write_options=SYNCHRONOUS)
 
 MQTT_BROKER = "127.0.0.1"
 MQTT_PORT = 1883
-MQTT_TOPIC = "hospital/telemetry/#"
+MQTT_TOPIC = "ivdrip/telemetry"
 
 def on_connect(client, userdata, flags, rc):
     print(f"✅ Đã kết nối MQTT Broker. Đang nghe tại: {MQTT_TOPIC}")
@@ -22,17 +22,19 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     try:
         payload = json.loads(msg.payload.decode("utf-8"))
-        device_id = payload.get("device", "Unknown")
-        current_rate = float(payload.get("current", 0))
-        target_rate = float(payload.get("target", 0))
-        valve_angle = float(payload.get("angle", 0))
+        device_id = payload.get("device_id", "Unknown")
+        current_rate = float(payload.get("bpm", 0))
+        target_rate = float(payload.get("target_bpm", 0))
+        valve_angle = float(payload.get("servo_angle", 0))
+        volume_ml = float(payload.get("volume_ml", 0))
 
         point = (
-            Point("iv_telemetry")
+            Point("iv_drip")
             .tag("device_id", device_id)
-            .field("current_rate", current_rate)
-            .field("target_rate", target_rate)
-            .field("valve_angle", valve_angle)
+            .field("bpm", current_rate)
+            .field("target_bpm", target_rate)
+            .field("servo_angle", valve_angle)
+            .field("volume_ml", volume_ml)
         )
 
         write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=point)

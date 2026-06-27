@@ -16,11 +16,11 @@ latest_telemetry = {}
 def on_message(client, userdata, msg):
     try:
         payload = json.loads(msg.payload.decode('utf-8'))
-        device_id = payload.get("device")
+        device_id = payload.get("device_id")
         if not device_id: return
         
-        current_rate = float(payload.get("current", 0))
-        valve_angle = float(payload.get("angle", 0))
+        current_rate = float(payload.get("bpm", 0))
+        valve_angle = float(payload.get("servo_angle", 0))
         
         # 1. Ghép nối dữ liệu từ PostgreSQL
         db = SessionLocal()
@@ -48,13 +48,14 @@ def on_message(client, userdata, msg):
         
         # 4. Ghi vào InfluxDB
         point = (
-            Point("iv_drip_measurement")
+            Point("iv_drip")
             .tag("device_id", device_id) 
             .tag("bed_number", payload.get("bed", "unknown"))
             .tag("ai_status", ai_code)
-            .field("current_rate", current_rate)
-            .field("target_rate", float(payload.get("target", 0)))
-            .field("valve_angle", valve_angle)
+            .field("volume_ml", float(payload.get("volume_ml", 0)))
+            .field("bpm", current_rate)
+            .field("target_bpm", float(payload.get("target", 0)))
+            .field("servo_angle", valve_angle)
         )
         write_api.write(bucket=settings.INFLUX_BUCKET, org=settings.INFLUX_ORG, record=point)
         
@@ -69,7 +70,7 @@ def start_mqtt():
     client.on_message = on_message
     client.connect("127.0.0.1", 1883, 60)
     # Lắng nghe tất cả telemetry từ các máy
-    client.subscribe("hospital/telemetry/#")
+    client.subscribe("ivdrip/telemetry")
     client.loop_start()
     mqtt_client_instance = client
     print("📡 MQTT Service đã khởi động (Multi-device mode)...")
@@ -78,7 +79,7 @@ def start_mqtt():
 def send_mqtt_command(device_id: str, new_target: float):
     if mqtt_client_instance:
         # 🐛 ĐẢM BẢO TOPIC NÀY KHỚP VỚI FILE MOCK
-        topic = f"hospital/command/{device_id}"
+        topic = f"ivdrip/control/{device_id}"
         payload = json.dumps({"target_rate": new_target})
         mqtt_client_instance.publish(topic, payload)
         print(f"🔫 Đã bắn lệnh {new_target} bpm xuống {device_id}")

@@ -1,0 +1,345 @@
+2026-06-27 12:08:14.592 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (401)
+Reason: Unauthorized
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.5', 'X-Platform-Error-Code': 'unauthorized', 'Date': 'Sat, 27 Jun 2026 05:08:14 GMT', 'Content-Length': '55'})
+HTTP response body: b'{"code":"unauthorized","message":"unauthorized access"}'
+
+2026-06-27 12:08:14.623 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (401)
+Reason: Unauthorized
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.5', 'X-Platform-Error-Code': 'unauthorized', 'Date': 'Sat, 27 Jun 2026 05:08:14 GMT', 'Content-Length': '55'})
+HTTP response body: b'{"code":"unauthorized","message":"unauthorized access"}'
+
+2026-06-27 12:08:17.425 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (401)
+Reason: Unauthorized
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.5', 'X-Platform-Error-Code': 'unauthorized', 'Date': 'Sat, 27 Jun 2026 05:08:17 GMT', 'Content-Length': '55'})
+HTTP response body: b'{"code":"unauthorized","message":"unauthorized access"}'
+
+2026-06-27 12:08:17.451 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (401)
+Reason: Unauthorized
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.5', 'X-Platform-Error-Code': 'unauthorized', 'Date': 'Sat, 27 Jun 2026 05:08:17 GMT', 'Content-Length': '55'})
+HTTP response body: b'{"code":"unauthorized","message":"unauthorized access"}'
+
+2026-06-27 12:08:18.957 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (401)
+Reason: Unauthorized
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.5', 'X-Platform-Error-Code': 'unauthorized', 'Date': 'Sat, 27 Jun 2026 05:08:18 GMT', 'Content-Length': '55'})
+HTTP response body: b'{"code":"unauthorized","message":"unauthorized access"}'
+
+2026-06-27 12:08:18.985 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (401)
+Reason: Unauthorized
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.5', 'X-Platform-Error-Code': 'unauthorized', 'Date': 'Sat, 27 Jun 2026 05:08:18 GMT', 'Content-Length': '55'})
+HTTP response body: b'{"code":"unauthorized","message":"unauthorized access"}'
+
+2026-06-27 12:08:19.639 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (401)
+Reason: Unauthorized
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.5', 'X-Platform-Error-Code': 'unauthorized', 'Date': 'Sat, 27 Jun 2026 05:08:19 GMT', 'Content-Length': '55'})
+HTTP response body: b'{"code":"unauthorized","message":"unauthorized access"}'
+
+2026-06-27 12:08:19.657 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (401)
+Reason: Unauthorized
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.5', 'X-Platform-Error-Code': 'unauthorized', 'Date': 'Sat, 27 Jun 2026 05:08:19 GMT', 'Content-Length': '55'})
+HTTP response body: b'{"code":"unauthorized","message":"unauthorized access"}'
+
+2026-06-27 12:38:00.958 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (401)
+Reason: Unauthorized
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.5', 'X-Platform-Error-Code': 'unauthorized', 'Date': 'Sat, 27 Jun 2026 05:38:00 GMT', 'Content-Length': '55'})
+HTTP response body: b'{"code":"unauthorized","message":"unauthorized access"}'
+
+2026-06-27 12:38:00.972 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (401)
+Reason: Unauthorized
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.5', 'X-Platform-Error-Code': 'unauthorized', 'Date': 'Sat, 27 Jun 2026 05:38:00 GMT', 'Content-Length': '55'})
+HTTP response body: b'{"code":"unauthorized","message":"unauthorized access"}'
+
+2026-06-27 12:38:02.109 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (401)
+Reason: Unauthorized
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.5', 'X-Platform-Error-Code': 'unauthorized', 'Date': 'Sat, 27 Jun 2026 05:38:01 GMT', 'Content-Length': '55'})
+HTTP response body: b'{"code":"unauthorized","message":"unauthorized access"}'
+
+2026-06-27 12:38:02.120 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (401)
+Reason: Unauthorized
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.5', 'X-Platform-Error-Code': 'unauthorized', 'Date': 'Sat, 27 Jun 2026 05:38:01 GMT', 'Content-Length': '55'})
+HTTP response body: b'{"code":"unauthorized","message":"unauthorized access"}'
+
+2026-06-27 12:38:02.560 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (401)
+Reason: Unauthorized
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.5', 'X-Platform-Error-Code': 'unauthorized', 'Date': 'Sat, 27 Jun 2026 05:38:02 GMT', 'Content-Length': '55'})
+HTTP response body: b'{"code":"unauthorized","message":"unauthorized access"}'
+
+2026-06-27 12:38:02.570 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (401)
+Reason: Unauthorized
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.5', 'X-Platform-Error-Code': 'unauthorized', 'Date': 'Sat, 27 Jun 2026 05:38:02 GMT', 'Content-Length': '55'})
+HTTP response body: b'{"code":"unauthorized","message":"unauthorized access"}'
+
+2026-06-27 12:38:03.019 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (401)
+Reason: Unauthorized
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.5', 'X-Platform-Error-Code': 'unauthorized', 'Date': 'Sat, 27 Jun 2026 05:38:02 GMT', 'Content-Length': '55'})
+HTTP response body: b'{"code":"unauthorized","message":"unauthorized access"}'
+
+2026-06-27 12:38:03.029 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (401)
+Reason: Unauthorized
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.5', 'X-Platform-Error-Code': 'unauthorized', 'Date': 'Sat, 27 Jun 2026 05:38:02 GMT', 'Content-Length': '55'})
+HTTP response body: b'{"code":"unauthorized","message":"unauthorized access"}'
+
+2026-06-27 12:47:19.792 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 05:47:19 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 12:47:19.817 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 05:47:19 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 12:48:10.196 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 05:48:09 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 12:48:10.214 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 05:48:09 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 12:59:31.740 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 05:59:31 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 12:59:31.776 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 05:59:31 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 12:59:34.282 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 05:59:34 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 12:59:34.300 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 05:59:34 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 12:59:34.845 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 05:59:34 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 12:59:34.872 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 05:59:34 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 12:59:35.120 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 05:59:34 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 12:59:35.141 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 05:59:34 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 12:59:35.352 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 05:59:35 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 12:59:35.369 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 05:59:35 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 13:06:53.544 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 06:06:53 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 13:06:53.562 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 06:06:53 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 13:06:54.406 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 06:06:54 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 13:06:54.433 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 06:06:54 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 13:12:32.085 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 06:12:32 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 13:12:32.110 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 06:12:32 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 13:50:25.332 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 06:50:25 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 13:50:25.936 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 06:50:25 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 13:50:27.440 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 06:50:27 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 13:50:28.696 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 06:50:28 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 13:50:28.723 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 06:50:28 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 13:56:46.349 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 06:56:46 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 17:34:00.286 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 10:29:15 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 17:34:00.330 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 10:29:16 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 22:08:13.959 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 15:08:13 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 22:08:13.993 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 15:08:13 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 22:26:47.024 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 15:26:47 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 22:26:47.047 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 15:26:47 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 22:48:36.105 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 15:48:35 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 22:48:36.132 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 15:48:35 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 22:49:59.403 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 15:49:59 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 22:52:47.953 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 15:52:47 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 22:52:47.976 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 15:52:47 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 23:14:04.916 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 16:14:04 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 23:14:04.931 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 16:14:04 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 23:19:22.408 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 16:19:22 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-27 23:29:00.035 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 16:28:59 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-28 00:12:21.744 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 17:12:21 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-28 00:12:21.770 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 17:12:21 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-28 00:24:29.122 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 17:24:28 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-28 00:24:29.142 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 17:24:28 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-28 00:32:10.591 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 17:32:10 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-28 00:32:10.610 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 17:32:10 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-28 00:35:14.916 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 17:35:14 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-28 00:35:14.939 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 17:35:15 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-28 00:36:49.933 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 17:36:50 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-28 00:36:49.953 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 17:36:50 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-28 00:48:09.435 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 17:48:09 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+
+2026-06-28 00:48:11.191 | ERROR    | main:get_telemetry:284 - Failed to get telemetry data: (400)
+Reason: Bad Request
+HTTP response headers: HTTPHeaderDict({'Content-Type': 'application/json; charset=utf-8', 'Vary': 'Accept-Encoding', 'X-Influxdb-Build': 'OSS', 'X-Influxdb-Version': 'v2.7.12', 'X-Platform-Error-Code': 'invalid', 'Date': 'Sat, 27 Jun 2026 17:48:11 GMT', 'Transfer-Encoding': 'chunked'})
+HTTP response body: b'{"code":"invalid","message":"error calling function \\"range\\" @3:16-3:44: value is not a time, got () =\\u003e time"}'
+

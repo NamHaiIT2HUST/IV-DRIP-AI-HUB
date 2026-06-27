@@ -31,7 +31,7 @@ def get_historical_data(device_id: str, minutes: int = 5):
     query = f'''
         from(bucket: "{settings.INFLUX_BUCKET}")
         |> range(start: -{minutes}m)
-        |> filter(fn: (r) => r["_measurement"] == "iv_drip_measurement")
+        |> filter(fn: (r) => r["_measurement"] == "iv_drip")
         |> filter(fn: (r) => r["device_id"] == "{device_id}")
         |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
     '''
@@ -42,8 +42,8 @@ def get_historical_data(device_id: str, minutes: int = 5):
             for record in table.records:
                 results.append({
                     "time": record.get_time().strftime("%H:%M:%S"),
-                    "current": record.values.get("current_rate"),
-                    "target": record.values.get("target_rate")
+                    "current": record.values.get("bpm"),
+                    "target": record.values.get("target_bpm")
                 })
         return {"device_id": device_id, "data_points": len(results), "history": results}
     except Exception as e:
