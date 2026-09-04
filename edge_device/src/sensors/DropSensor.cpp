@@ -40,14 +40,13 @@ bool DropSensor::begin() {
     
     // Store instance pointer for ISR
     s_dropSensors[slot] = this;
-    
-    // Tạm thời comment ngắt
-    // attachInterruptArg(_interruptPin, isrHandler, (void*)this, FALLING);
-    
-    // Đọc trạng thái chân để debug
+
+    // Attach hardware interrupt: LM393 output falls LOW when a drop breaks the IR beam
+    attachInterruptArg(digitalPinToInterrupt(_interruptPin), isrHandler, (void*)this, FALLING);
+
     int pinState = digitalRead(_interruptPin);
-    Serial.printf("[DropSensor] Debug - Trạng thái chân IR (%d): %d\n", _interruptPin, pinState);
-    
+    Serial.printf("[DropSensor] Initialized on GPIO %d (idle state: %d)\n", _interruptPin, pinState);
+
     _initialized = true;
     return true;
 }

@@ -112,6 +112,9 @@ The IV Drip Hub is a comprehensive medical monitoring system designed to:
 
 ### ESP32-S3 Pin Connections
 
+> Pin numbers below match `edge_device/src/main.cpp` (`#define ..._PIN`) and `DEMO_GUIDE_AND_STATE.md`,
+> the team's own record of the hardware bring-up on the ESP32-S3 (which pins avoided boot/PSRAM conflicts).
+
 | Component | ESP32-S3 Pin | Notes |
 |-----------|--------------|-------|
 | **HX711 (Load Cell)** | | |
@@ -120,29 +123,25 @@ The IV Drip Hub is a comprehensive medical monitoring system designed to:
 | VCC | 5V | Power |
 | GND | GND | Ground |
 | **IR Drop Sensor** | | |
-| OUT | GPIO 5 | Interrupt pin (EXT_INT) |
+| OUT | GPIO 5 | Interrupt pin (FALLING edge) |
 | VCC | 5V | Power |
 | GND | GND | Ground |
 | **Servo Motor** | | |
 | Signal | GPIO 21 | PWM output |
 | VCC | 5V | Power (external recommended) |
 | GND | GND | Ground |
-| **OLED Display (SSD1306)** | | |
-| SDA | GPIO 17 | I2C data |
-| SCL | GPIO 16 | I2C clock |
+| **OLED Display (SH1106, SW I2C)** | | |
+| SDA | GPIO 4 | I2C data |
+| SCL | GPIO 7 | I2C clock |
 | VCC | 3.3V | Power |
 | GND | GND | Ground |
 | **LEDs** | | |
-| Red LED | GPIO 25 | Via 220Ω resistor |
-| Yellow LED | GPIO 26 | Via 220Ω resistor |
-| Green LED | GPIO 27 | Via 220Ω resistor |
+| Red LED | GPIO 10 | Via 220Ω resistor |
+| Yellow LED | GPIO 11 | Via 220Ω resistor |
+| Green LED | GPIO 12 | Via 220Ω resistor |
 | **Buzzer** | | |
-| Positive | GPIO 33 | Via transistor (if needed) |
+| Positive | GPIO 6 | Active buzzer |
 | Negative | GND | Ground |
-| **Potentiometer (Optional)** | | |
-| Wiper | GPIO 34 | ADC input |
-| VCC | 3.3V | Power |
-| GND | GND | Ground |
 
 ### Wiring Schematic
 
@@ -154,13 +153,12 @@ The IV Drip Hub is a comprehensive medical monitoring system designed to:
    │                │ GPIO 19 (SCK) ◄─── HX711 SCK       │
    │                │ GPIO 5  (IRQ) ◄─── IR Sensor OUT   │
    │                │ GPIO 21 (PWM) ───► Servo Signal    │
-   │                │ GPIO 17 (SDA) ◄──► OLED SDA        │
-   │                │ GPIO 16 (SCL) ◄──► OLED SCL        │
-   │                │ GPIO 25 ───────► Red LED           │
-   │                │ GPIO 26 ───────► Yellow LED        │
-   │                │ GPIO 27 ───────► Green LED         │
-   │                │ GPIO 33 ───────► Buzzer            │
-   │                │ GPIO 34 (ADC) ◄─── Potentiometer   │
+   │                │ GPIO 4  (SDA) ◄──► OLED SDA        │
+   │                │ GPIO 7  (SCL) ◄──► OLED SCL        │
+   │                │ GPIO 10 ───────► Red LED           │
+   │                │ GPIO 11 ───────► Yellow LED        │
+   │                │ GPIO 12 ───────► Green LED         │
+   │                │ GPIO 6  ───────► Buzzer            │
    │                │                                     │
    │                │ 5V ─────────────► HX711 VCC        │
    │                │ 5V ─────────────► IR Sensor VCC    │
@@ -177,7 +175,7 @@ The IV Drip Hub is a comprehensive medical monitoring system designed to:
    │
    │  ┌──────────┐  ┌──────────┐  ┌──────────┐
    │  │  OLED    │  │  LEDs    │  │  Buzzer  │
-   │  │ SSD1306  │  │RGB Status│  │  Active  │
+   │  │ SH1106   │  │RGB Status│  │  Active  │
    │  └──────────┘  └──────────┘  └──────────┘
    └─────────────────────────────────────────────
 ```
@@ -244,17 +242,18 @@ The IV Drip Hub is a comprehensive medical monitoring system designed to:
    pip install -r requirements.txt
    ```
 
-3. **Configure InfluxDB connection** (edit `mqtt_worker.py` and `main.py`):
+3. **Configure InfluxDB connection** (edit `main.py`, matches `infrastructure/docker-compose.yml`):
    ```python
-   INFLUXDB_URL = "http://localhost:8086"
-   INFLUXDB_TOKEN = "ivdrip-token"
-   INFLUXDB_ORG = "ivdrip-org"
-   INFLUXDB_BUCKET = "ivdrip-data"
+   INFLUXDB_URL = "http://localhost:8087"
+   INFLUXDB_TOKEN = "<DOCKER_INFLUXDB_INIT_ADMIN_TOKEN from docker-compose.yml>"
+   INFLUXDB_ORG = "soict"
+   INFLUXDB_BUCKET = "telemetry_bucket"
    ```
 
-4. **Run the MQTT worker**:
+4. **Run the MQTT worker** (writes ESP32 telemetry into InfluxDB):
    ```bash
-   python mqtt_worker.py
+   cd ../ai_and_workers/mqtt_worker
+   python main.py
    ```
 
 5. **Run the FastAPI server** (in a new terminal):
@@ -297,14 +296,12 @@ The IV Drip Hub is a comprehensive medical monitoring system designed to:
 
 2. **Services included**:
    - **Mosquitto MQTT Broker** (port 1883, WebSocket 9001)
-   - **InfluxDB** (port 8086)
-   - **Grafana** (port 3000) - Optional for advanced dashboards
+   - **InfluxDB** (port 8087, mapped from container port 8086)
+   - **PostgreSQL** (port 5433) - reserved for a future patient/multi-bed feature, unused by the current pipeline
 
-3. **Initialize InfluxDB**:
-   - Access InfluxDB at `http://localhost:8086`
-   - Create organization: `ivdrip-org`
-   - Create bucket: `ivdrip-data`
-   - Generate API token and update backend configuration
+3. **InfluxDB is auto-initialized** by the `DOCKER_INFLUXDB_INIT_*` environment variables in
+   `docker-compose.yml` (org `soict`, bucket `telemetry_bucket`, a pre-generated admin token) —
+   no manual setup needed. Access the UI at `http://localhost:8087` if you want to browse the data.
 
 ## 🚀 Running the System
 
@@ -318,9 +315,8 @@ The IV Drip Hub is a comprehensive medical monitoring system designed to:
 
 2. **Start MQTT worker**:
    ```bash
-   cd backend
-   source venv/bin/activate  # or venv\Scripts\activate on Windows
-   python mqtt_worker.py
+   cd ai_and_workers/mqtt_worker
+   python main.py
    ```
 
 3. **Start FastAPI backend** (new terminal):
@@ -362,14 +358,11 @@ The IV Drip Hub is a comprehensive medical monitoring system designed to:
 
 ## 🎮 Demo Mode
 
-For testing without hardware, use the mock ESP32 simulator:
-
-```bash
-cd ai_and_workers
-python mock_esp32.py
-```
-
-This simulates an ESP32 device publishing realistic telemetry data to the MQTT broker.
+For testing without physical sensors, use the **Simulator Panel** built into the web dashboard itself
+(`frontend/src/components/SimulatorPanel.jsx`): click "Start Simulation" to feed fake volume/BPM values
+to the ESP32 over MQTT (`simulation_mode: true`). The firmware still runs its real PID loop and drives
+the physical servo — only the sensor readings are faked, so it's still an end-to-end test of the control
+loop and telemetry pipeline. Turn simulation off to resume reading the real IR drop sensor and load cell.
 
 ## 📚 API Documentation
 
@@ -389,7 +382,7 @@ This simulates an ESP32 device publishing realistic telemetry data to the MQTT b
 |-------|-----------|-------------|
 | `ivdrip/telemetry` | ESP32 → Broker | Sensor data (JSON) |
 | `ivdrip/status` | ESP32 → Broker | Device status updates |
-| `ivdrip/control` | Broker → ESP32 | Control commands |
+| `ivdrip/cmd` | Broker → ESP32 | Control commands (`simulation_mode`, `sim_volume`, `sim_bpm`, `target_bpm`, `servo_angle`) |
 
 ### Telemetry JSON Format
 
@@ -450,7 +443,7 @@ docker ps -a
 mosquitto_sub -h localhost -t "ivdrip/#" -v
 
 # Check InfluxDB data
-docker exec influxdb influx query "from(bucket:\"ivdrip-data\") |> range(start: -1h)"
+docker exec influxdb influx query "from(bucket:\"telemetry_bucket\") |> range(start: -1h)"
 ```
 
 ## 🤝 Contributing

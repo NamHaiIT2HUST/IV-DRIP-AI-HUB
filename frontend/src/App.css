@@ -1,108 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  font-family: 'Outfit', sans-serif;
+  background-color: #0b0d17;
+  color: #f8fafc;
+}
+
 /* Custom scrollbar for dark theme */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1f2937;
-  border-radius: 4px;
+  background: #0f172a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #4b5563;
-  border-radius: 4px;
+  background: #334155;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+  background: #475569;
 }
 
-/* Animation for status changes */
-@keyframes pulse-status {
+/* Animations */
+@keyframes pulse-soft {
   0%, 100% {
     opacity: 1;
+    transform: scale(1);
   }
   50% {
-    opacity: 0.7;
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
   }
 }
 
 .status-pulse {
-  animation: pulse-status 2s ease-in-out infinite;
+  animation: pulse-soft 2s ease-in-out infinite;
 }
 
-/* Card hover effect */
-.card-hover {
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+.danger-glow-pulse {
+  animation: pulse-glow 2s ease-in-out infinite;
 }
 
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+/* Neon Glows */
+.glow-blue {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+  border-top: 3px solid #3b82f6 !important;
 }
 
-/* Chart container */
-.recharts-wrapper {
-  font-size: 12px;
-}
-
-/* Custom tooltip styles */
-.custom-tooltip {
-  background-color: #1f2937 !important;
-  border: 1px solid #374151 !important;
-  border-radius: 8px !important;
-  padding: 12px !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5) !important;
-}
-
-/* Loading spinner */
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.spinner {
-  animation: spin 1s linear infinite;
-}
-
-/* Gradient backgrounds */
-.bg-gradient-normal {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.05));
-}
-
-.bg-gradient-warning {
-  background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(234, 179, 8, 0.05));
-}
-
-.bg-gradient-danger {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.05));
-}
-
-/* Glass effect */
-.glass {
-  background: rgba(31, 41, 55, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-/* Neon glow effect for status */
 .glow-green {
-  box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.15);
+  border-top: 3px solid #22c55e !important;
 }
 
-.glow-yellow {
-  box-shadow: 0 0 10px rgba(234, 179, 8, 0.5);
+.glow-purple {
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.15);
+  border-top: 3px solid #a855f7 !important;
 }
 
-.glow-red {
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+  border-top: 3px solid #06b6d4 !important;
+}
+
+/* Premium Card Styling */
+.glass-card {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* Medical Grid Dashboard UI */
+.med-bg {
+  background: radial-gradient(circle at top right, rgba(30, 41, 59, 0.5), #0b0d17 70%);
+  min-height: 100vh;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Custom Table Design */
+.med-table {
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+
+.med-table tr {
+  background: rgba(15, 23, 42, 0.3);
+  transition: all 0.2s ease;
+}
+
+.med-table tr:hover {
+  background: rgba(30, 41, 59, 0.4);
+}
+
+.med-table td, .med-table th {
+  padding: 12px 16px;
+}
+
+.med-table td:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.med-table td:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
 }

@@ -6,9 +6,13 @@
 #include <ArduinoJson.h>
 #include <ESP32Servo.h>
 #include "actuators/AlarmSystem.h"
+#include "sensors/DropSensor.h"
+#include "sensors/LoadCellSensor.h"
+#include <time.h>
+#include <sys/time.h>
 
 // ============================================================================
-// PIN DEFINITIONS & HARDWARE (NO PHYSICAL SENSORS)
+// PIN DEFINITIONS & HARDWARE
 // ============================================================================
 // OLED Display (SW I2C)
 #define OLED_SCL_PIN 7
@@ -25,10 +29,21 @@
 #define LED_YELLOW_PIN 11
 #define LED_GREEN_PIN 12
 
-const char* WIFI_SSID = "IVDRIP";
-const char* WIFI_PASSWORD = "12345678";
+// IR Drop Sensor (LM393 comparator output -> interrupt pin)
+// Theo DEMO_GUIDE_AND_STATE.md: chân ngắt dùng GPIO 5
+#define DROP_SENSOR_PIN 5
 
-const char* MQTT_SERVER = "192.168.137.1";
+// HX711 Load Cell Amplifier
+// Theo DEMO_GUIDE_AND_STATE.md: DT = GPIO 18, SCK = GPIO 19
+#define LOADCELL_DT_PIN 18
+#define LOADCELL_SCK_PIN 19
+// ⚠️ PHẢI hiệu chỉnh (calibrate) LOADCELL_CALIBRATION_FACTOR (sensors/LoadCellSensor.h)
+// theo loadcell/túi dịch thực tế trước khi dùng số liệu volume_ml
+
+const char* WIFI_SSID = "NDNH";
+const char* WIFI_PASSWORD = "00112233";
+
+const char* MQTT_SERVER = "172.20.10.5";
 const uint16_t MQTT_PORT = 1883;
 const char* MQTT_USER = "ivdrip";
 const char* MQTT_PASS = "ivdrip123";
@@ -64,13 +79,17 @@ PubSubClient mqttClient(espClient);
 U8G2_SH1106_128X64_NONAME_F_SW_I2C display(U8G2_R0, OLED_SCL_PIN, OLED_SDA_PIN, U8X8_PIN_NONE);
 Servo servoMotor;
 AlarmSystem alarmSystem(LED_RED_PIN, LED_YELLOW_PIN, LED_GREEN_PIN, BUZZER_PIN);
+DropSensor dropSensor(DROP_SENSOR_PIN);
+LoadCellSensor loadCell(LOADCELL_DT_PIN, LOADCELL_SCK_PIN);
 
-// System State (SIMULATED ONLY)
+// System State
 float currentVolume = 0.0f;
 float currentBPM = 0.0f;
 float targetBPM = 60.0f;
 SafetyStatus currentSafetyStatus = STATUS_NORMAL;
 int servoAngle = 45;
+// false = đọc dữ liệu thật từ cảm biến (mặc định); true = nhận volume/bpm giả lập qua MQTT (dùng cho Simulator Panel khi chưa có phần cứng)
+bool simulationMode = false;
 
 // PID Variables
 float pidError = 0;
@@ -104,7 +123,7 @@ void setup() {
     delay(1000);
     
     Serial.println("\n========================================");
-    Serial.println("IV Drip AI Hub - Pure Web Simulator");
+    Serial.println("IV Drip AI Hub - Edge Firmware");
     Serial.println("========================================");
     
     // Initialize Hardware
@@ -115,7 +134,14 @@ void setup() {
     servoMotor.write(servoAngle);
     alarmSystem.begin();
     alarmSystem.selfTest();
-    
+
+    // Initialize Sensors (real hardware)
+    dropSensor.begin();
+    dropSensor.setTargetBPM(targetBPM);
+    if (!loadCell.begin(LOADCELL_CALIBRATION_FACTOR)) {
+        Serial.println("[LoadCell] WARNING: Load cell not detected, volume will read 0 until fixed.");
+    }
+
     // Network Setup
     setupWiFi();
     mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
@@ -142,8 +168,14 @@ void loop() {
         mqttClient.loop();
     }
     
-    // Update Control Loop
+    // Sensor Acquisition + Control Loop (runs periodically regardless of MQTT traffic)
     if (currentTime - lastServoUpdateTime >= SERVO_UPDATE_INTERVAL) {
+        if (!simulationMode) {
+            // Real hardware readings
+            currentBPM = dropSensor.getBPM();
+            currentVolume = loadCell.getVolumeML();
+        }
+        // In simulationMode, currentBPM/currentVolume are instead fed by mqttCallback()
         runEdgeAI();
         runPIDController();
         updateServo();
@@ -193,6 +225,10 @@ void setupWiFi() {
         Serial.println("\n[WiFi] Connected!");
         Serial.print("[WiFi] IP Address: ");
         Serial.println(WiFi.localIP());
+        
+        // Sync time via NTP
+        Serial.println("[WiFi] Syncing NTP time...");
+        configTime(7 * 3600, 0, "pool.ntp.org", "time.nist.gov");
     } else {
         Serial.println("\n[WiFi] Failed to connect.");
     }
@@ -226,15 +262,35 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
             return;
         }
         
-        // Parse simulated data directly into system state
-        if (doc.containsKey("sim_volume")) {
-            currentVolume = doc["sim_volume"].as<float>();
+        // Toggle between real sensor readings and simulated telemetry (from web Simulator Panel)
+        if (doc.containsKey("simulation_mode")) {
+            simulationMode = doc["simulation_mode"].as<bool>();
+            Serial.printf("[Mode] simulationMode = %s\n", simulationMode ? "ON (fake sensors)" : "OFF (real sensors)");
         }
-        if (doc.containsKey("sim_bpm")) {
-            currentBPM = doc["sim_bpm"].as<float>();
+        // Simulated data only takes effect while simulationMode is active, so a real
+        // sensor reading can never be silently overwritten by a stale/leftover command.
+        if (simulationMode) {
+            if (doc.containsKey("sim_volume")) {
+                currentVolume = doc["sim_volume"].as<float>();
+            }
+            if (doc.containsKey("sim_bpm")) {
+                currentBPM = doc["sim_bpm"].as<float>();
+            }
         }
-        
-        Serial.printf("[Simulator] Data received -> Vol: %.1f, BPM: %.1f\n", currentVolume, currentBPM);
+        if (doc.containsKey("target_bpm")) {
+            targetBPM = doc["target_bpm"].as<float>();
+            dropSensor.setTargetBPM(targetBPM);
+        }
+        if (doc.containsKey("servo_angle")) {
+            // Manual override breaks PID deadlock
+            servoAngle = doc["servo_angle"].as<int>();
+            servoAngle = constrain(servoAngle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE);
+            // reset PID integral so it doesn't fight the manual change instantly
+            pidIntegral = 0;
+            updateServo();
+        }
+
+        Serial.printf("[MQTT Cmd] Vol: %.1f, BPM: %.1f, Target: %.1f\n", currentVolume, currentBPM, targetBPM);
     }
 }
 
@@ -253,15 +309,28 @@ void runEdgeAI() {
 }
 
 SafetyStatus determineSafetyStatus(float bpm, float volume) {
-    if (volume < VOLUME_EMPTY_THRESHOLD_ML && volume > 0) return STATUS_DANGER;
-    if (bpm < 1.0f && volume > VOLUME_EMPTY_THRESHOLD_ML) return STATUS_DANGER;
-    if (bpm > BPM_HIGH_THRESHOLD) return STATUS_WARNING;
-    if (bpm > 0 && bpm < BPM_LOW_THRESHOLD) return STATUS_WARNING;
+    // Only evaluate alerts and alarms if the valve is actually open (> 20 degrees)
+    if (servoAngle > 20) {
+        // 1. Empty bag alert: if volume is low but still positive
+        if (volume < VOLUME_EMPTY_THRESHOLD_ML && volume > 0.0f) {
+            return STATUS_DANGER;
+        }
+        
+        // 2. Blockage Alert: BPM = 0, but valve is open and bag has fluid
+        if (bpm < 1.0f && volume > VOLUME_EMPTY_THRESHOLD_ML) {
+            return STATUS_DANGER;
+        }
+        
+        // 3. High/Low BPM Warnings
+        if (bpm > BPM_HIGH_THRESHOLD) return STATUS_WARNING;
+        if (bpm > 0.0f && bpm < BPM_LOW_THRESHOLD) return STATUS_WARNING;
+        
+        float lowerBound = targetBPM * 0.7f;
+        float upperBound = targetBPM * 1.3f;
+        if (bpm > 0.0f && (bpm < lowerBound || bpm > upperBound)) return STATUS_WARNING;
+    }
     
-    float lowerBound = targetBPM * 0.7f;
-    float upperBound = targetBPM * 1.3f;
-    if (bpm > 0 && (bpm < lowerBound || bpm > upperBound)) return STATUS_WARNING;
-    
+    // If the valve is closed (servoAngle <= 20), no alarms should sound
     return STATUS_NORMAL;
 }
 
@@ -278,6 +347,12 @@ String getStatusString(SafetyStatus status) {
 // PID CONTROLLER
 // ============================================================================
 void runPIDController() {
+    // If the system is in DANGER (blockage or empty), freeze the PID to prevent windup
+    if (currentSafetyStatus == STATUS_DANGER) {
+        pidError = 0; pidIntegral = 0; pidDerivative = 0; pidLastError = 0;
+        return;
+    }
+    
     if (currentBPM < 1.0f || targetBPM <= 0) {
         pidError = 0; pidIntegral = 0; pidDerivative = 0; pidLastError = 0;
         return;
@@ -287,7 +362,8 @@ void runPIDController() {
     float P = PID_KP * pidError;
     
     pidIntegral += pidError;
-    pidIntegral = constrain(pidIntegral, -100.0f, 100.0f);
+    // Constrain integral to a tighter range to prevent massive windup oscillations
+    pidIntegral = constrain(pidIntegral, -30.0f, 30.0f);
     float I = PID_KI * pidIntegral;
     
     pidDerivative = pidError - pidLastError;
@@ -318,7 +394,7 @@ void updateOLED() {
     
     // Header
     display.setCursor(0, y);
-    display.print("SIMULATOR HUB ");
+    display.print(simulationMode ? "SIM HUB " : "SENSOR HUB ");
     switch (currentSafetyStatus) {
         case STATUS_NORMAL:  display.print("[OK]"); break;
         case STATUS_WARNING: display.print("[WARN]"); break;
@@ -369,7 +445,16 @@ void publishTelemetry() {
     doc["rssi"] = WiFi.RSSI();
     doc["free_heap"] = ESP.getFreeHeap();
     doc["uptime_ms"] = millis();
-    doc["timestamp"] = millis();
+    
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    uint64_t timestamp_ms = (uint64_t)(tv.tv_sec) * 1000ULL + (uint64_t)(tv.tv_usec) / 1000ULL;
+    // Fallback if NTP not synced yet (time near 1970)
+    if (tv.tv_sec < 1000000000) {
+        doc["timestamp"] = millis();
+    } else {
+        doc["timestamp"] = timestamp_ms;
+    }
     
     char buffer[512];
     size_t n = serializeJson(doc, buffer, sizeof(buffer));

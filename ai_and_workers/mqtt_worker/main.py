@@ -27,18 +27,21 @@ def on_message(client, userdata, msg):
         target_rate = float(payload.get("target_bpm", 0))
         valve_angle = float(payload.get("servo_angle", 0))
         volume_ml = float(payload.get("volume_ml", 0))
+        status = payload.get("status", "normal")
 
         point = (
             Point("iv_drip")
             .tag("device_id", device_id)
+            .tag("status", status) # Tag it with status for easy filtering
             .field("bpm", current_rate)
             .field("target_bpm", target_rate)
             .field("servo_angle", valve_angle)
             .field("volume_ml", volume_ml)
+            .field("status", status) # Also store it as field
         )
 
         write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=point)
-        print(f"💾 LƯU INFLUXDB -> [{device_id}] Current: {current_rate} | Valve: {valve_angle}")
+        print(f"💾 LƯU INFLUXDB -> [{device_id}] Current: {current_rate} | Valve: {valve_angle} | Status: {status}")
 
     except Exception as e:
         print(f"❌ Lỗi: {e}")

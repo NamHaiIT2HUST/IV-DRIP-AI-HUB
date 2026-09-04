@@ -29,10 +29,8 @@ const SimulatorPanel = ({ mqttClient, servoAngle }) => {
 
   // Update local manual valve state when servoAngle prop changes
   useEffect(() => {
-    if (!simulationEnabled) {
-      setManualValve(servoAngle);
-    }
-  }, [servoAngle, simulationEnabled]);
+    setManualValve(servoAngle);
+  }, [servoAngle]);
 
   const toggleSimulation = () => {
     const newState = !simulationEnabled;
@@ -107,7 +105,9 @@ const SimulatorPanel = ({ mqttClient, servoAngle }) => {
         let currentVol = stateRef.current.simVolume;
         
         let calculatedBpm = Math.max(0, (currentAngle - 20) * 1.5);
-        if (calculatedBpm > 0) {
+        if (currentVol <= 10.0) {
+            calculatedBpm = 0; // Stop dripping if volume is below empty/critical threshold (blockage/empty)
+        } else if (calculatedBpm > 0) {
             calculatedBpm += (Math.random() * 2 - 1); // ±1 BPM noise
         }
         
@@ -116,7 +116,6 @@ const SimulatorPanel = ({ mqttClient, servoAngle }) => {
         
         if (currentVol < 0) {
             currentVol = 0;
-            calculatedBpm = 0; // stop dripping if empty
         }
 
         // Update state natively
@@ -141,77 +140,79 @@ const SimulatorPanel = ({ mqttClient, servoAngle }) => {
   }, [simulationEnabled, mqttClient]); // Removed volatile dependencies!
 
   return (
-    <div className={`mt-6 p-4 rounded-xl border ${simulationEnabled ? 'bg-indigo-900/40 border-indigo-500/50' : 'bg-[#1a1f2c] border-gray-800'}`}>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold flex items-center text-white">
-          <Activity className="w-5 h-5 mr-2 text-indigo-400" />
-          System Settings & Simulation
+    <div className={`mt-6 glass-card rounded-2xl p-6 transition-all duration-300 ${simulationEnabled ? 'border-indigo-500/30 glow-purple' : ''}`}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5 pb-4 border-b border-slate-800">
+        <h3 className="text-base font-bold flex items-center text-slate-100">
+          <Activity className="w-5 h-5 mr-2 text-indigo-400 status-pulse" />
+          Simulation Control Cockpit
         </h3>
-        <button
-          onClick={toggleSimulation}
-          className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
-            simulationEnabled 
-              ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/50' 
-              : 'bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 border border-indigo-500/50'
-          }`}
-        >
-          {simulationEnabled ? (
-            <><Square className="w-4 h-4 mr-2" /> Stop Simulation</>
-          ) : (
-            <><Play className="w-4 h-4 mr-2" /> Start Simulation</>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={toggleSimulation}
+            className={`flex items-center px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+              simulationEnabled 
+                ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30' 
+                : 'bg-indigo-500/15 text-indigo-400 hover:bg-indigo-500/25 border border-indigo-500/30'
+            }`}
+          >
+            {simulationEnabled ? (
+              <><Square className="w-4 h-4 mr-2" /> Stop Simulation</>
+            ) : (
+              <><Play className="w-4 h-4 mr-2" /> Start Simulation</>
+            )}
+          </button>
+          {simulationEnabled && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={triggerDanger}
+                className="flex items-center px-3.5 py-2 rounded-lg text-xs font-bold transition-all duration-200 bg-red-600/15 text-red-400 hover:bg-red-600/25 border border-red-500/30"
+              >
+                Trigger Danger
+              </button>
+              <button
+                onClick={resolveDanger}
+                className="flex items-center px-3.5 py-2 rounded-lg text-xs font-bold transition-all duration-200 bg-green-600/15 text-green-400 hover:bg-green-600/25 border border-green-500/30"
+              >
+                Resolve Danger
+              </button>
+            </div>
           )}
-        </button>
-        {simulationEnabled && (
-          <div className="flex space-x-2 ml-2">
-            <button
-              onClick={triggerDanger}
-              className="flex items-center px-4 py-2 rounded-lg font-medium transition-colors bg-red-600/20 text-red-500 hover:bg-red-600/40 border border-red-500"
-            >
-              Trigger Danger
-            </button>
-            <button
-              onClick={resolveDanger}
-              className="flex items-center px-4 py-2 rounded-lg font-medium transition-colors bg-green-600/20 text-green-500 hover:bg-green-600/40 border border-green-500"
-            >
-              Resolve Danger
-            </button>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Manual Controls (Always Available) */}
-      <div className="mt-6 border-t border-gray-700 pt-4">
-        <h4 className="text-sm font-medium text-gray-300 mb-4 flex items-center gap-2">
-          <Settings className="w-4 h-4 text-purple-400" />
-          Manual Valve Control (Degree: {manualValve}°)
+      <div className="mt-4">
+        <h4 className="text-xs font-semibold text-purple-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+          <Settings className="w-3.5 h-3.5 text-purple-400" />
+          Manual Valve Position: {manualValve}°
         </h4>
-        <div className="flex items-center gap-4">
-          <span className="text-xs text-gray-400">0° (Closed)</span>
+        <div className="flex items-center gap-4 bg-slate-900/40 p-4 rounded-xl border border-slate-800/50">
+          <span className="text-[10px] uppercase font-bold text-slate-500">Closed</span>
           <input
             type="range"
             min="0"
             max="90"
             value={manualValve}
             onChange={handleValveChange}
-            className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+            className="flex-1 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
           />
-          <span className="text-xs text-gray-400">90° (Open)</span>
+          <span className="text-[10px] uppercase font-bold text-slate-500">Fully Open</span>
         </div>
       </div>
 
-      <div className="mt-4 pb-4">
-        <h4 className="text-sm font-medium text-gray-300 mb-4 flex items-center gap-2">
-          <Droplets className="w-4 h-4 text-blue-400" />
-          Set Initial Volume
+      <div className="mt-5 pb-2">
+        <h4 className="text-xs font-semibold text-blue-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+          <Droplets className="w-3.5 h-3.5 text-blue-400" />
+          Set Initial Infusion Volume
         </h4>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 bg-slate-900/40 p-4 rounded-xl border border-slate-800/50">
           <input
             type="number"
             value={inputVolume}
             onChange={(e) => setInputVolume(Number(e.target.value))}
-            className="bg-gray-800 border border-gray-600 rounded px-3 py-1 w-24 text-white"
+            className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 w-24 text-sm text-slate-100 font-semibold focus:outline-none focus:border-blue-500"
           />
-          <span className="text-sm text-gray-400">mL</span>
+          <span className="text-xs font-bold text-slate-400">mL</span>
           <button
             onClick={() => {
               setSimVolume(parseFloat(inputVolume));
@@ -221,30 +222,30 @@ const SimulatorPanel = ({ mqttClient, servoAngle }) => {
                 }));
               }
             }}
-            className="ml-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm transition-colors"
+            className="ml-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white rounded-lg transition-all duration-200 shadow-lg shadow-blue-500/10"
           >
             Update Volume
           </button>
         </div>
       </div>
 
-      {/* Simulation Controls */}
+      {/* Simulation Dynamic Value Displays */}
       {simulationEnabled && (
-        <div className="mt-6 border-t border-gray-700 pt-4">
+        <div className="mt-5 pt-5 border-t border-slate-800/60">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-black/20 p-4 rounded-lg">
-              <span className="block text-sm text-gray-400 mb-1">Simulated Volume</span>
-              <span className="text-2xl font-bold text-white">
-                {simVolume.toFixed(1)} <span className="text-sm text-gray-500 font-normal">mL</span>
+            <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800/50">
+              <span className="block text-[10px] uppercase tracking-wider font-bold text-slate-500 mb-1">Simulated Volume remaining</span>
+              <span className="text-xl font-bold text-slate-200">
+                {simVolume.toFixed(1)} <span className="text-xs text-slate-500 font-normal">mL</span>
               </span>
             </div>
 
-            <div className="bg-black/20 p-4 rounded-lg">
-              <span className="block text-sm text-gray-400 mb-1">Simulated BPM</span>
-              <span className="text-2xl font-bold text-white">
-                {simBPM.toFixed(1)} <span className="text-sm text-gray-500 font-normal">BPM</span>
+            <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800/50">
+              <span className="block text-[10px] uppercase tracking-wider font-bold text-slate-500 mb-1">Simulated Infusion Drop Rate</span>
+              <span className="text-xl font-bold text-slate-200">
+                {simBPM.toFixed(1)} <span className="text-xs text-slate-500 font-normal">BPM</span>
               </span>
-              <div className="text-xs text-gray-500 mt-1">Calculated from Servo: {servoAngle}°</div>
+              <div className="text-[10px] text-indigo-400 mt-1">Reflecting Current Servo Position: {servoAngle}°</div>
             </div>
           </div>
         </div>

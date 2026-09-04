@@ -1,4 +1,14 @@
 services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+
   influxdb:
     image: influxdb:2.7
     ports:
@@ -24,3 +34,5 @@ services:
 
 volumes:
   influxdb_data_final:
+  mosquitto_data:
+  mosquitto_log:

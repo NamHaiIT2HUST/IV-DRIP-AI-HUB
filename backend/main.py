@@ -193,7 +193,7 @@ async def get_current_status():
             |> filter(fn: (r) => r._field == "volume_ml" or r._field == "bpm" or 
                              r._field == "target_bpm" or r._field == "servo_angle" or
                              r._field == "rssi" or r._field == "free_heap" or 
-                             r._field == "uptime_ms")
+                             r._field == "uptime_ms" or r._field == "status")
             |> last()
             |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
         '''
@@ -235,15 +235,19 @@ async def get_telemetry(
         client = get_influx_client()
         query_api = client.query_api()
         
+        # Ensure 'now' is formatted as 'now()' for InfluxDB Flux compatibility
+        query_start = start if start != "now" else "now()"
+        query_end = end if end != "now" else "now()"
+        
         # Build query
         query = f'''
             from(bucket: "{INFLUXDB_BUCKET}")
-            |> range(start: {start}, stop: {end})
+            |> range(start: {query_start}, stop: {query_end})
             |> filter(fn: (r) => r._measurement == "iv_drip")
             |> filter(fn: (r) => r._field == "volume_ml" or r._field == "bpm" or 
                              r._field == "target_bpm" or r._field == "servo_angle" or
                              r._field == "rssi" or r._field == "free_heap" or 
-                             r._field == "uptime_ms")
+                             r._field == "uptime_ms" or r._field == "status")
             |> sort(columns: ["_time"], desc: false)
             |> limit(n: {limit})
             |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
@@ -295,10 +299,14 @@ async def get_telemetry_stats(
         client = get_influx_client()
         query_api = client.query_api()
         
+        # Ensure 'now' is formatted as 'now()' for InfluxDB Flux compatibility
+        query_start = start if start != "now" else "now()"
+        query_end = end if end != "now" else "now()"
+        
         # Query for statistics
         query = f'''
             from(bucket: "{INFLUXDB_BUCKET}")
-            |> range(start: {start}, stop: {end})
+            |> range(start: {query_start}, stop: {query_end})
             |> filter(fn: (r) => r._measurement == "iv_drip")
             |> filter(fn: (r) => r._field == "volume_ml" or r._field == "bpm" or r._field == "servo_angle")
             |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)
@@ -308,25 +316,35 @@ async def get_telemetry_stats(
         result = query_api.query(query)
         client.close()
         
-        # Process results
-        stats = {
-            "volume_ml": {"min": 0, "max": 0, "avg": 0},
-            "bpm": {"min": 0, "max": 0, "avg": 0},
-            "servo_angle": {"min": 0, "max": 0, "avg": 0}
-        }
-        
+        # Process results (accumulate sum/count for a true average, and use
+        # None as the "no data yet" sentinel so a legitimate 0 reading -
+        # e.g. bpm during a blockage - can't be mistaken for "uninitialized")
+        fields = ["volume_ml", "bpm", "servo_angle"]
+        accumulators = {field: {"min": None, "max": None, "sum": 0.0, "count": 0} for field in fields}
+
         for table in result:
             for record in table.records:
                 field = record.values.get("_field", "")
                 value = float(record.values.get("_value", 0))
-                
-                if field in stats:
-                    if stats[field]["min"] == 0 or value < stats[field]["min"]:
-                        stats[field]["min"] = value
-                    if value > stats[field]["max"]:
-                        stats[field]["max"] = value
-                    stats[field]["avg"] = (stats[field]["avg"] + value) / 2
-        
+
+                if field in accumulators:
+                    acc = accumulators[field]
+                    if acc["min"] is None or value < acc["min"]:
+                        acc["min"] = value
+                    if acc["max"] is None or value > acc["max"]:
+                        acc["max"] = value
+                    acc["sum"] += value
+                    acc["count"] += 1
+
+        stats = {
+            field: {
+                "min": acc["min"] or 0,
+                "max": acc["max"] or 0,
+                "avg": (acc["sum"] / acc["count"]) if acc["count"] > 0 else 0
+            }
+            for field, acc in accumulators.items()
+        }
+
         return {
             "period": {"start": start, "end": end},
             "statistics": stats,
@@ -348,9 +366,13 @@ async def get_alerts(
         client = get_influx_client()
         query_api = client.query_api()
         
+        # Ensure 'now' is formatted as 'now()' for InfluxDB Flux compatibility
+        query_start = start if start != "now" else "now()"
+        query_end = end if end != "now" else "now()"
+        
         query = f'''
             from(bucket: "{INFLUXDB_BUCKET}")
-            |> range(start: {start}, stop: {end})
+            |> range(start: {query_start}, stop: {query_end})
             |> filter(fn: (r) => r._measurement == "iv_drip")
             |> filter(fn: (r) => r._field == "status")
             |> filter(fn: (r) => r._value == "danger" or r._value == "warning")

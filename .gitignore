@@ -3,3 +3,7 @@ __pycache__/
 *.pyo
 *.pyd
 .env
+
+# Runtime logs (frontend/ and edge_device/ have their own .gitignore for node_modules/.pio)
+backend/logs/
+*.log
