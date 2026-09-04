@@ -1,6 +1,7 @@
 import json
+import time
 import paho.mqtt.client as mqtt
-from influxdb_client import InfluxDBClient, Point
+from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 INFLUX_URL = "http://localhost:8087"
@@ -28,16 +29,31 @@ def on_message(client, userdata, msg):
         valve_angle = float(payload.get("servo_angle", 0))
         volume_ml = float(payload.get("volume_ml", 0))
         status = payload.get("status", "normal")
+        rssi = int(payload.get("rssi", 0))
+        free_heap = int(payload.get("free_heap", 0))
+        uptime_ms = int(payload.get("uptime_ms", 0))
 
+        # ESP32 gửi kèm mốc thời gian NTP thật (ms); nếu chưa đồng bộ NTP thì đó chỉ
+        # là millis() nhỏ (< năm 2001) - lúc đó dùng giờ máy chủ nhận gói tin cho chuẩn.
+        esp_timestamp_ms = int(payload.get("timestamp", 0))
+        if esp_timestamp_ms < 1000000000000:
+            esp_timestamp_ms = int(time.time() * 1000)
+
+        # "status" phải chỉ là field, KHÔNG được đồng thời là tag: nếu trùng tên,
+        # Flux pivot(columnKey: ["_field"]) sẽ lỗi "column already exists" - lỗi này
+        # thực sự làm hỏng /api/status và /api/telemetry bên backend/main.py.
         point = (
             Point("iv_drip")
             .tag("device_id", device_id)
-            .tag("status", status) # Tag it with status for easy filtering
             .field("bpm", current_rate)
             .field("target_bpm", target_rate)
             .field("servo_angle", valve_angle)
             .field("volume_ml", volume_ml)
-            .field("status", status) # Also store it as field
+            .field("status", status)
+            .field("rssi", rssi)
+            .field("free_heap", free_heap)
+            .field("uptime_ms", uptime_ms)
+            .time(esp_timestamp_ms, WritePrecision.MS)
         )
 
         write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=point)
